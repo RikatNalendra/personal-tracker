@@ -18,67 +18,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
     isConfigured: false,
     isConnected: false,
   },
-  accounts: [
-    {
-      id: "acc_bca",
-      name: "BCA Priority / Main Account",
-      type: "bank",
-      balance: 48500000,
-      currency: "IDR",
-      color: "#10B981", // Emerald
-      icon: "Building2",
-      accountNumber: "8490-****-12",
-      institution: "Bank Central Asia",
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "acc_mandiri",
-      name: "Mandiri Payroll & Operations",
-      type: "bank",
-      balance: 34200000,
-      currency: "IDR",
-      color: "#3B82F6", // Blue
-      icon: "Landmark",
-      accountNumber: "137-00-****-88",
-      institution: "Bank Mandiri",
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "acc_rdi",
-      name: "Stockbit RDI (Investment Cash)",
-      type: "investment_cash",
-      balance: 22000000,
-      currency: "IDR",
-      color: "#F59E0B", // Gold
-      icon: "Briefcase",
-      accountNumber: "RDI-BCA-88910",
-      institution: "PT Sinarmas Sekuritas / Stockbit",
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "acc_gopay",
-      name: "GoPay / QRIS Daily Wallet",
-      type: "ewallet",
-      balance: 2750000,
-      currency: "IDR",
-      color: "#06B6D4", // Cyan
-      icon: "Smartphone",
-      accountNumber: "0812-****-990",
-      institution: "GoPay Indonesia",
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "acc_cash",
-      name: "Executive Physical Vault",
-      type: "cash",
-      balance: 1500000,
-      currency: "IDR",
-      color: "#9CA3AF", // Slate
-      icon: "Wallet",
-      institution: "Petty Cash",
-      updatedAt: new Date().toISOString(),
-    },
-  ],
+  accounts: [],
   categories: [
     // Income Categories
     {
@@ -109,14 +49,14 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       color: "#3B82F6",
       icon: "Zap",
     },
-    // Expense Categories (with budgets)
+    // Expense Categories (with standard budget templates)
     {
       id: "cat_exp_housing",
       name: "Housing & Property",
       type: "expense",
       color: "#8B5CF6",
       icon: "Home",
-      monthlyBudget: 8500000,
+      monthlyBudget: 8000000,
     },
     {
       id: "cat_exp_dining",
@@ -124,7 +64,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       type: "expense",
       color: "#F59E0B",
       icon: "Coffee",
-      monthlyBudget: 6000000,
+      monthlyBudget: 5000000,
     },
     {
       id: "cat_exp_transport",
@@ -132,7 +72,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       type: "expense",
       color: "#3B82F6",
       icon: "Car",
-      monthlyBudget: 3500000,
+      monthlyBudget: 3000000,
     },
     {
       id: "cat_exp_fitness",
@@ -140,7 +80,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       type: "expense",
       color: "#10B981",
       icon: "Activity",
-      monthlyBudget: 3000000,
+      monthlyBudget: 2500000,
     },
     {
       id: "cat_exp_software",
@@ -156,7 +96,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       type: "expense",
       color: "#EC4899",
       icon: "Heart",
-      monthlyBudget: 4500000,
+      monthlyBudget: 4000000,
     },
     {
       id: "cat_exp_shopping",
@@ -167,6 +107,98 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       monthlyBudget: 3000000,
     },
   ],
+  transactions: [],
+  assets: [],
+  tasks: [],
+  taskWorkspaces: [
+    { id: "ws_work", name: "Work / Office", color: "#3B82F6", icon: "Briefcase" },
+    { id: "ws_biz", name: "Business", color: "#F59E0B", icon: "TrendingUp" },
+    { id: "ws_personal", name: "Personal", color: "#8B5CF6", icon: "User" },
+    { id: "ws_fitness", name: "Fitness", color: "#10B981", icon: "Activity" },
+    { id: "ws_learning", name: "Learning", color: "#06B6D4", icon: "BookOpen" },
+  ],
+};
+
+export const SAMPLE_DEMO_DATABASE: MasterDatabaseSchema = {
+  version: "1.0.0",
+  updatedAt: new Date().toISOString(),
+  settings: {
+    defaultCurrency: "IDR",
+    usdToIdrRate: 16250,
+    autoSyncToDrive: true,
+    syncIntervalMinutes: 5,
+    userName: "Executive Director",
+    userRole: "Principal Partner & Investor",
+  },
+  driveConfig: {
+    clientId: "",
+    folderName: "Executive_Dashboard_Data",
+    fileName: "personal_executive_dashboard_db.json",
+    isConfigured: false,
+    isConnected: false,
+  },
+  accounts: [
+    {
+      id: "acc_bca",
+      name: "BCA Priority / Main Account",
+      type: "bank",
+      balance: 48500000,
+      currency: "IDR",
+      color: "#10B981",
+      icon: "Building2",
+      accountNumber: "8490-****-12",
+      institution: "Bank Central Asia",
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "acc_mandiri",
+      name: "Mandiri Payroll & Operations",
+      type: "bank",
+      balance: 34200000,
+      currency: "IDR",
+      color: "#3B82F6",
+      icon: "Landmark",
+      accountNumber: "137-00-****-88",
+      institution: "Bank Mandiri",
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "acc_rdi",
+      name: "Stockbit RDI (Investment Cash)",
+      type: "investment_cash",
+      balance: 22000000,
+      currency: "IDR",
+      color: "#F59E0B",
+      icon: "Briefcase",
+      accountNumber: "RDI-BCA-88910",
+      institution: "PT Sinarmas Sekuritas / Stockbit",
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "acc_gopay",
+      name: "GoPay / QRIS Daily Wallet",
+      type: "ewallet",
+      balance: 2750000,
+      currency: "IDR",
+      color: "#06B6D4",
+      icon: "Smartphone",
+      accountNumber: "0812-****-990",
+      institution: "GoPay Indonesia",
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "acc_cash",
+      name: "Executive Physical Vault",
+      type: "cash",
+      balance: 1500000,
+      currency: "IDR",
+      color: "#9CA3AF",
+      icon: "Wallet",
+      institution: "Petty Cash",
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  categories: INITIAL_DATABASE.categories,
   transactions: [
     {
       id: "tx_01",
@@ -309,9 +341,9 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       name: "Antam Physical Gold Bullion",
       ticker: "ANTAM",
       assetClass: "gold",
-      quantity: 50, // 50 grams
-      avgBuyPrice: 1260000, // Rp 1.260.000 / gram
-      currentPrice: 1480000, // Rp 1.480.000 / gram
+      quantity: 50,
+      avgBuyPrice: 1260000,
+      currentPrice: 1480000,
       currency: "IDR",
       purchaseDate: "2024-03-15",
       notes: "CertiCard LBMA 999.9 stored in Safe Deposit Box",
@@ -323,7 +355,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       name: "Bank Central Asia Tbk",
       ticker: "BBCA.JK",
       assetClass: "idx_stock",
-      quantity: 5000, // 50 lots
+      quantity: 5000,
       avgBuyPrice: 9350,
       currentPrice: 10150,
       currency: "IDR",
@@ -337,7 +369,7 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       name: "Bank Rakyat Indonesia Tbk",
       ticker: "BBRI.JK",
       assetClass: "idx_stock",
-      quantity: 8000, // 80 lots
+      quantity: 8000,
       avgBuyPrice: 4750,
       currentPrice: 5125,
       currency: "IDR",
@@ -352,8 +384,8 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       ticker: "NVDA",
       assetClass: "us_stock",
       quantity: 25,
-      avgBuyPrice: 112.5, // USD
-      currentPrice: 144.2, // USD
+      avgBuyPrice: 112.5,
+      currentPrice: 144.2,
       currency: "USD",
       purchaseDate: "2024-06-18",
       notes: "AI infrastructure compute dominance",
@@ -366,8 +398,8 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       ticker: "VOO",
       assetClass: "us_stock",
       quantity: 12,
-      avgBuyPrice: 485.0, // USD
-      currentPrice: 546.8, // USD
+      avgBuyPrice: 485.0,
+      currentPrice: 546.8,
       currency: "USD",
       purchaseDate: "2023-11-05",
       notes: "Broad market global dollar allocation",
@@ -380,8 +412,8 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       ticker: "BTC",
       assetClass: "crypto",
       quantity: 0.45,
-      avgBuyPrice: 63500, // USD
-      currentPrice: 91800, // USD
+      avgBuyPrice: 63500,
+      currentPrice: 91800,
       currency: "USD",
       purchaseDate: "2024-02-14",
       notes: "Hard digital asset stored in Ledger cold wallet",
@@ -394,8 +426,8 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       ticker: "ETH",
       assetClass: "crypto",
       quantity: 4.0,
-      avgBuyPrice: 2850, // USD
-      currentPrice: 3420, // USD
+      avgBuyPrice: 2850,
+      currentPrice: 3420,
       currency: "USD",
       purchaseDate: "2024-03-22",
       notes: "Staked on Lido / Eigenlayer",
@@ -512,34 +544,6 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
       createdAt: "2026-11-10T00:00:00.000Z",
       streakCount: 32,
     },
-    {
-      id: "tsk_07",
-      title: "Sign BSD City Apartment Tenant Lease Extension",
-      notes: "Notarized contract renewal with 10% rent increment for 2027.",
-      categoryTag: "Personal",
-      priority: "medium",
-      dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0],
-      recurrence: "none",
-      status: "todo",
-      createdAt: "2026-11-22T10:00:00.000Z",
-    },
-    {
-      id: "tsk_08",
-      title: "Quarterly Tax Filing & Dividends Withholding Audit",
-      notes: "Coordinate with tax advisor regarding final PPh on stock sales and property dividends.",
-      categoryTag: "Business",
-      priority: "high",
-      dueDate: new Date(Date.now() + 86400000 * 4).toISOString().split("T")[0],
-      recurrence: "none",
-      status: "todo",
-      createdAt: "2026-11-21T15:00:00.000Z",
-    },
   ],
-  taskWorkspaces: [
-    { id: "ws_work", name: "Work / Office", color: "#3B82F6", icon: "Briefcase" },
-    { id: "ws_biz", name: "Business", color: "#F59E0B", icon: "TrendingUp" },
-    { id: "ws_personal", name: "Personal", color: "#8B5CF6", icon: "User" },
-    { id: "ws_fitness", name: "Fitness", color: "#10B981", icon: "Activity" },
-    { id: "ws_learning", name: "Learning", color: "#06B6D4", icon: "BookOpen" },
-  ],
+  taskWorkspaces: INITIAL_DATABASE.taskWorkspaces,
 };

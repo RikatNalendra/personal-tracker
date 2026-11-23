@@ -45,64 +45,72 @@ export const PortfolioAllocationChart: React.FC = () => {
         </p>
       </div>
 
-      <div className="h-52 w-full my-2 relative flex items-center justify-center">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={85}
-              paddingAngle={3}
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} stroke="#131722" strokeWidth={2} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#131722',
-                borderColor: '#1E2433',
-                borderRadius: '12px',
-              }}
-              formatter={(value: any) => [formatIDR(Number(value)), 'Value (IDR)']}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[10px] text-[#9CA3AF]">Portfolio</span>
-          <span className="text-xs font-bold text-[#F3F4F6] font-mono">
-            {formatCompactIDR(totalPortfolioValue)}
-          </span>
+      {chartData.length === 0 ? (
+        <div className="py-16 text-center text-xs text-[#9CA3AF]">
+          No assets in your portfolio yet. Add assets to view class allocation.
         </div>
-      </div>
-
-      {/* Allocation Legend */}
-      <div className="space-y-2 pt-2 border-t border-[#1E2433]">
-        {chartData.map((item, idx) => {
-          const pct =
-            totalPortfolioValue > 0
-              ? ((item.value / totalPortfolioValue) * 100).toFixed(1)
-              : '0';
-          return (
-            <div key={idx} className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2 min-w-0">
-                <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: item.color }}
+      ) : (
+        <>
+          <div className="h-52 w-full my-2 relative flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={85}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#131722" strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#131722',
+                    borderColor: '#1E2433',
+                    borderRadius: '12px',
+                  }}
+                  formatter={(value: any) => [formatIDR(Number(value)), 'Value (IDR)']}
                 />
-                <span className="text-[#9CA3AF] truncate text-[11px]">{item.name}</span>
-              </div>
-              <div className="flex items-center space-x-2 font-mono flex-shrink-0">
-                <span className="text-[#F3F4F6] text-[11px]">{formatCompactIDR(item.value)}</span>
-                <span className="text-[#64748B] text-[10px] w-9 text-right">{pct}%</span>
-              </div>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[10px] text-[#9CA3AF]">Portfolio</span>
+              <span className="text-xs font-bold text-[#F3F4F6] font-mono">
+                {formatCompactIDR(totalPortfolioValue)}
+              </span>
             </div>
-          );
-        })}
-      </div>
+          </div>
+
+          {/* Allocation Legend */}
+          <div className="space-y-2 pt-2 border-t border-[#1E2433]">
+            {chartData.map((item, idx) => {
+              const pct =
+                totalPortfolioValue > 0
+                  ? ((item.value / totalPortfolioValue) * 100).toFixed(1)
+                  : '0';
+              return (
+                <div key={idx} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-[#9CA3AF] truncate text-[11px]">{item.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 font-mono flex-shrink-0">
+                    <span className="text-[#F3F4F6] text-[11px]">{formatCompactIDR(item.value)}</span>
+                    <span className="text-[#64748B] text-[10px] w-9 text-right">{pct}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </Card>
   );
 };

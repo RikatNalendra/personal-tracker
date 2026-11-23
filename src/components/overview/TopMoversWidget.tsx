@@ -45,52 +45,58 @@ export const TopMoversWidget: React.FC<TopMoversWidgetProps> = ({ onNavigatePort
         </button>
       </div>
 
-      <div className="divide-y divide-[#1E2433]/60 my-2">
-        {topMovers.map((asset) => {
-          const val = getAssetCurrentValueIDR(asset, usdRate);
-          const { gainPercent, gainIDR } = getAssetUnrealizedGainIDR(asset, usdRate);
-          const isProfitable = gainIDR >= 0;
+      {topMovers.length === 0 ? (
+        <div className="py-8 text-center text-xs text-[#9CA3AF]">
+          No investment assets in portfolio yet.
+        </div>
+      ) : (
+        <div className="divide-y divide-[#1E2433]/60 my-2">
+          {topMovers.map((asset) => {
+            const val = getAssetCurrentValueIDR(asset, usdRate);
+            const { gainPercent, gainIDR } = getAssetUnrealizedGainIDR(asset, usdRate);
+            const isProfitable = gainIDR >= 0;
 
-          return (
-            <div key={asset.id} className="py-2.5 flex items-center justify-between">
-              <div className="flex items-center space-x-2.5 min-w-0">
-                <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: getAssetClassColor(asset.assetClass) }}
-                />
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-[#F3F4F6] truncate flex items-center space-x-1">
-                    <span>{asset.name}</span>
-                    <span className="font-mono text-[10px] text-[#9CA3AF]">({asset.ticker})</span>
+            return (
+              <div key={asset.id} className="py-2.5 flex items-center justify-between">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: getAssetClassColor(asset.assetClass) }}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#F3F4F6] truncate flex items-center space-x-1">
+                      <span>{asset.name}</span>
+                      <span className="font-mono text-[10px] text-[#9CA3AF]">({asset.ticker})</span>
+                    </div>
+                    <span className="text-[10px] text-[#64748B] font-mono">
+                      {formatIDR(val)}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-[#64748B] font-mono">
-                    {formatIDR(val)}
-                  </span>
                 </div>
-              </div>
 
-              <div className="text-right font-mono flex-shrink-0">
-                <div
-                  className={`text-xs font-bold flex items-center justify-end ${
-                    isProfitable ? 'text-emerald-400' : 'text-red-400'
-                  }`}
-                >
-                  {isProfitable ? (
-                    <TrendingUp className="w-3 h-3 mr-0.5" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3 mr-0.5" />
-                  )}
-                  {formatPercent(gainPercent)}
-                </div>
-                <div className="text-[10px] text-[#9CA3AF]">
-                  {isProfitable ? '+' : ''}
-                  {formatIDR(gainIDR)}
+                <div className="text-right font-mono flex-shrink-0">
+                  <div
+                    className={`text-xs font-bold flex items-center justify-end ${
+                      isProfitable ? 'text-emerald-400' : 'text-red-400'
+                    }`}
+                  >
+                    {isProfitable ? (
+                      <TrendingUp className="w-3 h-3 mr-0.5" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3 mr-0.5" />
+                    )}
+                    {formatPercent(gainPercent)}
+                  </div>
+                  <div className="text-[10px] text-[#9CA3AF]">
+                    {isProfitable ? '+' : ''}
+                    {formatIDR(gainIDR)}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </Card>
   );
 };

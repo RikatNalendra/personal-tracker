@@ -15,34 +15,40 @@ export const LivePriceTicker: React.FC = () => {
           <span>MARKET TICKER</span>
         </div>
 
-        {database.assets.map((asset) => {
-          const isUp = (asset.priceChange24h || 0) >= 0;
-          return (
-            <div
-              key={asset.id}
-              className="flex items-center space-x-2 flex-shrink-0 text-xs font-mono"
-            >
-              <span className="font-bold text-[#F3F4F6]">{asset.ticker}</span>
-              <span className="text-[#9CA3AF]">
-                {asset.currency === 'USD'
-                  ? formatUSD(asset.currentPrice)
-                  : formatIDR(asset.currentPrice)}
-              </span>
-              <span
-                className={`text-[11px] font-semibold flex items-center ${
-                  isUp ? 'text-emerald-400' : 'text-red-400'
-                }`}
+        {database.assets.length === 0 ? (
+          <span className="text-xs text-[#64748B] italic">
+            No assets tracked yet. Add physical gold, stocks, or crypto in Portfolio to monitor live prices.
+          </span>
+        ) : (
+          database.assets.map((asset) => {
+            const isUp = (asset.priceChange24h || 0) >= 0;
+            return (
+              <div
+                key={asset.id}
+                className="flex items-center space-x-2 flex-shrink-0 text-xs font-mono"
               >
-                {isUp ? (
-                  <TrendingUp className="w-3 h-3 mr-0.5" />
-                ) : (
-                  <TrendingDown className="w-3 h-3 mr-0.5" />
-                )}
-                {formatPercent(asset.priceChange24h || 0)}
-              </span>
-            </div>
-          );
-        })}
+                <span className="font-bold text-[#F3F4F6]">{asset.ticker}</span>
+                <span className="text-[#9CA3AF]">
+                  {asset.currency === 'USD'
+                    ? formatUSD(asset.currentPrice)
+                    : formatIDR(asset.currentPrice)}
+                </span>
+                <span
+                  className={`text-[11px] font-semibold flex items-center ${
+                    isUp ? 'text-emerald-400' : 'text-red-400'
+                  }`}
+                >
+                  {isUp ? (
+                    <TrendingUp className="w-3 h-3 mr-0.5" />
+                  ) : (
+                    <TrendingDown className="w-3 h-3 mr-0.5" />
+                  )}
+                  {formatPercent(asset.priceChange24h || 0)}
+                </span>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Refresh Action */}

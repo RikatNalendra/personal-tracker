@@ -1,19 +1,24 @@
 import { MasterDatabaseSchema } from '../types/database';
-import { INITIAL_DATABASE } from '../data/initialData';
+import { INITIAL_DATABASE, SAMPLE_DEMO_DATABASE } from '../data/initialData';
 
-const STORAGE_KEY = 'personal_executive_dashboard_master_db_v1';
+const STORAGE_KEY = 'personal_executive_dashboard_master_db_v2';
+const LEGACY_STORAGE_KEY = 'personal_executive_dashboard_master_db_v1';
 
 export const storageService = {
   loadDatabase(): MasterDatabaseSchema {
     try {
+      // Clean up legacy demo data storage key if present
+      if (localStorage.getItem(LEGACY_STORAGE_KEY)) {
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) {
-        // Save initial database on first load
+        // Save clean initial database on first load
         localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATABASE));
         return INITIAL_DATABASE;
       }
       const parsed = JSON.parse(stored) as MasterDatabaseSchema;
-      // Merge with default schema structure in case fields were added
       return {
         ...INITIAL_DATABASE,
         ...parsed,
@@ -84,20 +89,12 @@ export const storageService = {
   },
 
   resetToDemo(): MasterDatabaseSchema {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATABASE));
-    return INITIAL_DATABASE;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_DEMO_DATABASE));
+    return SAMPLE_DEMO_DATABASE;
   },
 
   clearAllData(): MasterDatabaseSchema {
-    const blankDb: MasterDatabaseSchema = {
-      ...INITIAL_DATABASE,
-      accounts: [],
-      transactions: [],
-      assets: [],
-      tasks: [],
-      updatedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(blankDb));
-    return blankDb;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATABASE));
+    return INITIAL_DATABASE;
   },
 };

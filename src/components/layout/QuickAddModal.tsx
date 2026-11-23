@@ -247,35 +247,47 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
               <label className="block text-xs font-medium text-[#9CA3AF] mb-1">
                 {txType === 'transfer' ? 'From Account' : 'Account / Wallet'}
               </label>
-              <select
-                value={txAccountId}
-                onChange={(e) => setTxAccountId(e.target.value)}
-                className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
-              >
-                {database.accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} (Rp {acc.balance.toLocaleString('id-ID')})
-                  </option>
-                ))}
-              </select>
+              {database.accounts.length === 0 ? (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300">
+                  No accounts yet. Please add an account in <strong>Cash Flow & Wallets</strong> first.
+                </div>
+              ) : (
+                <select
+                  value={txAccountId}
+                  onChange={(e) => setTxAccountId(e.target.value)}
+                  className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
+                >
+                  {database.accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} (Rp {acc.balance.toLocaleString('id-ID')})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {txType === 'transfer' ? (
               <div>
                 <label className="block text-xs font-medium text-[#9CA3AF] mb-1">To Account</label>
-                <select
-                  value={txToAccountId}
-                  onChange={(e) => setTxToAccountId(e.target.value)}
-                  className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
-                >
-                  {database.accounts
-                    .filter((a) => a.id !== txAccountId)
-                    .map((acc) => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name}
-                      </option>
-                    ))}
-                </select>
+                {database.accounts.length < 2 ? (
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300">
+                    Transfers require at least 2 accounts.
+                  </div>
+                ) : (
+                  <select
+                    value={txToAccountId}
+                    onChange={(e) => setTxToAccountId(e.target.value)}
+                    className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
+                  >
+                    {database.accounts
+                      .filter((a) => a.id !== txAccountId)
+                      .map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.name}
+                        </option>
+                      ))}
+                  </select>
+                )}
               </div>
             ) : (
               <div>

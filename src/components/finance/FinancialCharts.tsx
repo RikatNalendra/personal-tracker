@@ -179,61 +179,69 @@ export const FinancialCharts: React.FC = () => {
           <p className="text-xs text-[#9CA3AF]">Spending by category distribution</p>
         </div>
 
-        <div className="h-48 w-full my-2 relative flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieChartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={80}
-                paddingAngle={3}
-                dataKey="value"
-              >
-                {pieChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} stroke="#131722" strokeWidth={2} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#131722',
-                  borderColor: '#1E2433',
-                  borderRadius: '12px',
-                }}
-                formatter={(value: any) => [formatIDR(Number(value)), '']}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[10px] text-[#9CA3AF]">Total</span>
-            <span className="text-xs font-bold text-[#F3F4F6] font-mono">
-              {formatCompactIDR(totalExpense)}
-            </span>
+        {pieChartData.length === 0 ? (
+          <div className="py-16 text-center text-xs text-[#9CA3AF]">
+            No expenses recorded yet. As transactions are logged, your category breakdown will appear here.
           </div>
-        </div>
-
-        {/* Top 4 Categories List */}
-        <div className="space-y-1.5 pt-2 border-t border-[#1E2433] max-h-36 overflow-y-auto">
-          {pieChartData.slice(0, 5).map((item, idx) => {
-            const pct = totalExpense > 0 ? ((item.value / totalExpense) * 100).toFixed(1) : '0';
-            return (
-              <div key={idx} className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2 min-w-0">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: item.color }}
+        ) : (
+          <>
+            <div className="h-48 w-full my-2 relative flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#131722" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#131722',
+                      borderColor: '#1E2433',
+                      borderRadius: '12px',
+                    }}
+                    formatter={(value: any) => [formatIDR(Number(value)), '']}
                   />
-                  <span className="text-[#9CA3AF] truncate text-[11px]">{item.name}</span>
-                </div>
-                <div className="flex items-center space-x-2 font-mono flex-shrink-0">
-                  <span className="text-[#F3F4F6] text-[11px]">{formatCompactIDR(item.value)}</span>
-                  <span className="text-[#64748B] text-[10px] w-9 text-right">{pct}%</span>
-                </div>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[10px] text-[#9CA3AF]">Total</span>
+                <span className="text-xs font-bold text-[#F3F4F6] font-mono">
+                  {formatCompactIDR(totalExpense)}
+                </span>
               </div>
-            );
-          })}
-        </div>
+            </div>
+
+            {/* Top Categories List */}
+            <div className="space-y-1.5 pt-2 border-t border-[#1E2433] max-h-36 overflow-y-auto">
+              {pieChartData.slice(0, 5).map((item, idx) => {
+                const pct = totalExpense > 0 ? ((item.value / totalExpense) * 100).toFixed(1) : '0';
+                return (
+                  <div key={idx} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-[#9CA3AF] truncate text-[11px]">{item.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 font-mono flex-shrink-0">
+                      <span className="text-[#F3F4F6] text-[11px]">{formatCompactIDR(item.value)}</span>
+                      <span className="text-[#64748B] text-[10px] w-9 text-right">{pct}%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </Card>
     </div>
   );
