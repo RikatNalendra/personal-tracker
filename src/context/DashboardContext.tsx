@@ -369,13 +369,16 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [updateDbAndPersist, success]
   );
 
-  const refreshLivePrices = useCallback(async () => {
+  const refreshLivePrices = useCallback(async (silent: boolean = false) => {
     setIsRefreshingPrices(true);
-    info('Market pricing update', 'Fetching live market quotes & FX rates...');
+    if (!silent) {
+      info('Market pricing update', 'Fetching live market quotes & FX rates...');
+    }
     try {
       const { updatedAssets, usdRate } = await marketPriceService.refreshAllAssetPrices(
         database.assets,
-        database.settings.usdToIdrRate
+        database.settings.usdToIdrRate,
+        database.settings.finnhubApiKey
       );
 
       updateDbAndPersist((prev) => ({
@@ -383,18 +386,35 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         settings: {
           ...prev.settings,
           usdToIdrRate: usdRate,
+          lastPriceRefreshTimestamp: new Date().toISOString(),
         },
         assets: updatedAssets,
       }));
 
-      success('Valuations updated', `Live rates refreshed (USD/IDR: Rp ${usdRate.toLocaleString('id-ID')})`);
+      if (!silent) {
+        success('Valuations updated', `Live rates refreshed (USD/IDR: Rp ${usdRate.toLocaleString('id-ID')})`);
+      }
     } catch (err: any) {
       console.error('Failed to refresh market prices:', err);
-      error('Price refresh error', err?.message || 'Could not reach pricing API');
+      if (!silent) {
+        error('Price refresh error', err?.message || 'Could not reach pricing API');
+      }
     } finally {
       setIsRefreshingPrices(false);
     }
-  }, [database.assets, database.settings.usdToIdrRate, updateDbAndPersist, info, success, error]);
+  }, [database.assets, database.settings.usdToIdrRate, database.settings.finnhubApiKey, updateDbAndPersist, info, success, error]);
+
+  // Periodic auto-refresh if interval is configured
+  useEffect(() => {
+    const intervalMins = database.settings.autoRefreshPricesIntervalMinutes || 0;
+    if (intervalMins <= 0) return;
+
+    const timer = setInterval(() => {
+      refreshLivePrices(true);
+    }, intervalMins * 60 * 1000);
+
+    return () => clearInterval(timer);
+  }, [database.settings.autoRefreshPricesIntervalMinutes, refreshLivePrices]);
 
   // TASK ACTIONS
   const addTask = useCallback(

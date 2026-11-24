@@ -17,6 +17,7 @@ import {
   User,
   Shield,
   Layers,
+  Sparkles,
 } from 'lucide-react';
 import { GoogleDriveGuideModal } from './GoogleDriveGuideModal';
 
@@ -49,6 +50,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   );
   const [userNameInput, setUserNameInput] = useState<string>(database.settings.userName);
   const [userRoleInput, setUserRoleInput] = useState<string>(database.settings.userRole);
+  const [finnhubApiKeyInput, setFinnhubApiKeyInput] = useState<string>(
+    database.settings.finnhubApiKey || ''
+  );
+  const [autoRefreshIntervalInput, setAutoRefreshIntervalInput] = useState<number>(
+    database.settings.autoRefreshPricesIntervalMinutes || 0
+  );
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isFetchingRate, setIsFetchingRate] = useState<boolean>(false);
 
@@ -59,6 +66,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setUsdRateInput(database.settings.usdToIdrRate.toString());
       setUserNameInput(database.settings.userName);
       setUserRoleInput(database.settings.userRole);
+      setFinnhubApiKeyInput(database.settings.finnhubApiKey || '');
+      setAutoRefreshIntervalInput(database.settings.autoRefreshPricesIntervalMinutes || 0);
     }
   }, [isOpen, database.settings, database.driveConfig.clientId]);
 
@@ -77,6 +86,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         usdToIdrRate: rate,
         userName: userNameInput.trim(),
         userRole: userRoleInput.trim(),
+        finnhubApiKey: finnhubApiKeyInput.trim() || undefined,
+        autoRefreshPricesIntervalMinutes: autoRefreshIntervalInput,
       });
     }
   };
@@ -257,6 +268,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         {/* 2. GENERAL & FX PREFERENCES */}
         {activeTab === 'general' && (
           <form onSubmit={handleSaveGeneral} className="space-y-4">
+            {/* Live Pricing Architecture Explanation Card */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#171C2A] to-[#131722] border border-[#1E2433] space-y-2.5">
+              <div className="flex items-center space-x-2 text-xs font-bold text-[#F59E0B]">
+                <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+                <span>Live Dollar & Stock Pricing Engine</span>
+              </div>
+              <p className="text-xs text-[#9CA3AF] leading-relaxed">
+                The dashboard automatically synchronizes real-time prices using multiple live data feeds:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+                <div className="p-2.5 rounded-lg bg-[#0E121B] border border-[#1E2433]">
+                  <span className="font-bold text-emerald-400 block mb-0.5">1. Dollar (USD/IDR)</span>
+                  <span className="text-[#9CA3AF]">
+                    Live public FX API with automatic IDR re-conversion for all assets.
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0E121B] border border-[#1E2433]">
+                  <span className="font-bold text-[#F59E0B] block mb-0.5">2. Crypto (BTC, ETH)</span>
+                  <span className="text-[#9CA3AF]">
+                    Native real-time CoinGecko public feed with 24h percentage swings.
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0E121B] border border-[#1E2433]">
+                  <span className="font-bold text-blue-400 block mb-0.5">3. US & IDX Stocks</span>
+                  <span className="text-[#9CA3AF]">
+                    Live market ticker data + optional free Finnhub real-time API.
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-[#9CA3AF] mb-1">
@@ -272,7 +314,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
               <div>
                 <label className="block text-xs font-medium text-[#9CA3AF] mb-1">
-                  USD / IDR Exchange Rate
+                  USD / IDR Live Exchange Rate
                 </label>
                 <div className="flex space-x-2">
                   <div className="relative flex-1">
@@ -296,9 +338,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     onClick={handleFetchLiveRate}
                     icon={<RefreshCw className={`w-3.5 h-3.5 ${isFetchingRate ? 'animate-spin' : ''}`} />}
                   >
-                    Live FX
+                    Fetch FX
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Auto-Refresh & Finnhub API Key */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-[#9CA3AF] mb-1">
+                  Price Auto-Refresh Cadence
+                </label>
+                <select
+                  value={autoRefreshIntervalInput}
+                  onChange={(e) => setAutoRefreshIntervalInput(parseInt(e.target.value, 10))}
+                  className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
+                >
+                  <option value={0}>Manual Only (Click Header Button)</option>
+                  <option value={1}>Every 1 Minute (Active Market)</option>
+                  <option value={5}>Every 5 Minutes (Recommended)</option>
+                  <option value={15}>Every 15 Minutes</option>
+                </select>
+                <p className="text-[10px] text-[#64748B] mt-1">
+                  Automatically updates dollar rate and asset prices in the background.
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium text-[#9CA3AF]">
+                    Finnhub Stock API Key (Optional)
+                  </label>
+                  <a
+                    href="https://finnhub.io/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-[#F59E0B] hover:underline inline-flex items-center space-x-0.5"
+                  >
+                    <span>Get Free Key</span>
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                </div>
+                <input
+                  type="text"
+                  value={finnhubApiKeyInput}
+                  onChange={(e) => setFinnhubApiKeyInput(e.target.value)}
+                  placeholder="e.g. cxxxxxxxxxxxx"
+                  className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs font-mono text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
+                />
+                <p className="text-[10px] text-[#64748B] mt-1">
+                  Free real-time quotes for US stocks (NVDA, AAPL, MSFT, VOO, TSLA).
+                </p>
               </div>
             </div>
 

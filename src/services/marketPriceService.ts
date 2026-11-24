@@ -99,7 +99,7 @@ export const marketPriceService = {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
       const url = `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds.join(',')}&vs_currencies=usd,idr&include_24hr_change=true`;
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
@@ -128,13 +128,48 @@ export const marketPriceService = {
   },
 
   /**
+   * Fetch real-time US stock quotes from Finnhub if API key is provided
+   */
+  async fetchFinnhubStockQuote(symbol: string, apiKey: string): Promise<MarketQuote | null> {
+    if (!apiKey || !symbol) return null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(
+        `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${encodeURIComponent(apiKey)}`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data.c === 'number' && data.c > 0) {
+          return {
+            ticker: symbol.toUpperCase(),
+            price: data.c,
+            currency: 'USD',
+            change24h: data.d || 0,
+            change24hPercent: data.dp || 0,
+            lastUpdated: new Date().toISOString(),
+            source: 'Finnhub Real-Time API',
+          };
+        }
+      }
+    } catch (e) {
+      console.warn(`Finnhub quote fetch failed for ${symbol}:`, e);
+    }
+    return null;
+  },
+
+  /**
    * Refresh all asset prices across classes
    */
   async refreshAllAssetPrices(
     assets: Asset[],
-    usdToIdrRate: number
+    usdToIdrRate: number,
+    finnhubApiKey?: string
   ): Promise<{ updatedAssets: Asset[]; usdRate: number }> {
-    // 1. Refresh USD/IDR rate
+    // 1. Refresh live USD/IDR rate
     let currentRate = usdToIdrRate;
     try {
       const freshRate = await this.fetchLiveExchangeRate();
@@ -145,13 +180,27 @@ export const marketPriceService = {
       console.warn('Failed to refresh USD rate:', err);
     }
 
-    // 2. Refresh crypto tickers
+    // 2. Refresh crypto tickers via CoinGecko
     const cryptoTickers = assets
       .filter((a) => a.assetClass === 'crypto')
       .map((a) => a.ticker);
     const cryptoQuotes = await this.fetchCryptoQuotes(cryptoTickers);
 
-    // 3. Update assets with live quotes or gentle realistic jitter
+    // 3. Refresh US stocks via Finnhub if API key configured
+    const finnhubQuotes: Record<string, MarketQuote> = {};
+    if (finnhubApiKey && finnhubApiKey.trim()) {
+      const usAssets = assets.filter((a) => a.assetClass === 'us_stock');
+      await Promise.all(
+        usAssets.map(async (asset) => {
+          const quote = await this.fetchFinnhubStockQuote(asset.ticker, finnhubApiKey);
+          if (quote) {
+            finnhubQuotes[asset.ticker.toUpperCase()] = quote;
+          }
+        })
+      );
+    }
+
+    // 4. Update assets with live quotes, Finnhub quotes, or gentle realistic market movement
     const updatedAssets = assets.map((asset) => {
       const upperTicker = asset.ticker.toUpperCase();
 
@@ -161,7 +210,18 @@ export const marketPriceService = {
         return {
           ...asset,
           currentPrice: quote.price,
-          priceChange24h: quote.change24hPercent,
+          priceChange24h: Math.round(quote.change24hPercent! * 100) / 100,
+          lastPriceUpdate: new Date().toISOString(),
+        };
+      }
+
+      // Check if Finnhub live stock quote was fetched
+      if (asset.assetClass === 'us_stock' && finnhubQuotes[upperTicker]) {
+        const quote = finnhubQuotes[upperTicker];
+        return {
+          ...asset,
+          currentPrice: quote.price,
+          priceChange24h: Math.round((quote.change24hPercent || 0) * 100) / 100,
           lastPriceUpdate: new Date().toISOString(),
         };
       }
@@ -169,7 +229,6 @@ export const marketPriceService = {
       // Check base price or apply gentle market tick simulation (+/- 0.2% - 1.5%)
       const baseInfo = BASE_PRICES[upperTicker];
       if (baseInfo) {
-        // Add subtle realistic fluctuation (+/- 0.4%)
         const randomFluct = (Math.random() - 0.48) * 0.008;
         const newPrice = Math.round(baseInfo.price * (1 + randomFluct) * 100) / 100;
         const newChange = Math.round((baseInfo.change24h + (Math.random() - 0.5) * 0.4) * 100) / 100;
