@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { useDashboard } from '../../context/DashboardContext';
@@ -32,6 +32,29 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   );
   const [txNotes, setTxNotes] = useState<string>('');
 
+  // Keep selected account and category synced when modal opens or accounts change
+  useEffect(() => {
+    if (isOpen) {
+      if (!txAccountId || !database.accounts.some((a) => a.id === txAccountId)) {
+        if (database.accounts.length > 0) {
+          setTxAccountId(database.accounts[0].id);
+        }
+      }
+      if (!txToAccountId || !database.accounts.some((a) => a.id === txToAccountId)) {
+        if (database.accounts.length > 1) {
+          const secondAcc = database.accounts.find(
+            (a) => a.id !== (txAccountId || database.accounts[0]?.id)
+          );
+          if (secondAcc) setTxToAccountId(secondAcc.id);
+        }
+      }
+      if (!txCategoryId || !database.categories.some((c) => c.id === txCategoryId)) {
+        const cat = database.categories.find((c) => c.type === txType);
+        if (cat) setTxCategoryId(cat.id);
+      }
+    }
+  }, [isOpen, database.accounts, database.categories, txType, txAccountId, txToAccountId, txCategoryId]);
+
   // Asset form state
   const [assetName, setAssetName] = useState<string>('');
   const [assetTicker, setAssetTicker] = useState<string>('');
@@ -56,13 +79,19 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
     const amount = parseFloat(txAmount.replace(/[^0-9.]/g, ''));
     if (!amount || amount <= 0) return;
 
+    const resolvedAccountId = txAccountId || database.accounts[0]?.id;
+    if (!resolvedAccountId) {
+      alert('Please add at least one account in Cash Flow & Wallets first.');
+      return;
+    }
+
     addTransaction({
       type: txType,
       amount,
       date: txDate,
-      accountId: txAccountId,
-      toAccountId: txType === 'transfer' ? txToAccountId : undefined,
-      categoryId: txType === 'transfer' ? 'transfer' : txCategoryId,
+      accountId: resolvedAccountId,
+      toAccountId: txType === 'transfer' ? (txToAccountId || database.accounts[1]?.id) : undefined,
+      categoryId: txType === 'transfer' ? 'transfer' : (txCategoryId || database.categories[0]?.id),
       notes: txNotes.trim(),
     });
 

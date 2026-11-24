@@ -19,9 +19,44 @@ export const storageService = {
         return INITIAL_DATABASE;
       }
       const parsed = JSON.parse(stored) as MasterDatabaseSchema;
+
+      // Auto-reconciliation: Link orphaned transactions to the primary account and adjust balance
+      let reconciledAccounts = parsed.accounts || [];
+      let reconciledTransactions = parsed.transactions || [];
+
+      if (reconciledAccounts.length > 0 && reconciledTransactions.length > 0) {
+        const defaultAccId = reconciledAccounts[0].id;
+        const hasOrphans = reconciledTransactions.some(
+          (tx) => !tx.accountId || !reconciledAccounts.some((a) => a.id === tx.accountId)
+        );
+
+        if (hasOrphans) {
+          let balanceAdjustment = 0;
+          reconciledTransactions = reconciledTransactions.map((tx) => {
+            if (!tx.accountId || !reconciledAccounts.some((a) => a.id === tx.accountId)) {
+              if (tx.type === 'income') balanceAdjustment += tx.amount;
+              if (tx.type === 'expense') balanceAdjustment -= tx.amount;
+              return { ...tx, accountId: defaultAccId };
+            }
+            return tx;
+          });
+
+          if (balanceAdjustment !== 0) {
+            reconciledAccounts = reconciledAccounts.map((acc, idx) => {
+              if (idx === 0) {
+                return { ...acc, balance: acc.balance + balanceAdjustment, updatedAt: new Date().toISOString() };
+              }
+              return acc;
+            });
+          }
+        }
+      }
+
       return {
         ...INITIAL_DATABASE,
         ...parsed,
+        accounts: reconciledAccounts,
+        transactions: reconciledTransactions,
         settings: {
           ...INITIAL_DATABASE.settings,
           ...(parsed.settings || {}),

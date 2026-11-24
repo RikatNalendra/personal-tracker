@@ -124,13 +124,19 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // TRANSACTION ACTIONS WITH BALANCE ADJUSTMENTS
   const addTransaction = useCallback(
     (txData: Omit<Transaction, 'id' | 'createdAt'>) => {
-      const newTx: Transaction = {
-        ...txData,
-        id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        createdAt: new Date().toISOString(),
-      };
-
       updateDbAndPersist((prev) => {
+        let resolvedAccountId = txData.accountId;
+        if (!resolvedAccountId || !prev.accounts.some((a) => a.id === resolvedAccountId)) {
+          resolvedAccountId = prev.accounts[0]?.id || '';
+        }
+
+        const newTx: Transaction = {
+          ...txData,
+          accountId: resolvedAccountId,
+          id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          createdAt: new Date().toISOString(),
+        };
+
         // Adjust account balances
         const updatedAccounts = prev.accounts.map((acc) => {
           if (newTx.type === 'income' && acc.id === newTx.accountId) {
@@ -157,7 +163,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
       });
 
-      success('Transaction logged', `${newTx.type.toUpperCase()}: ${newTx.notes || 'Recorded successfully'}`);
+      success('Transaction logged', `${txData.type.toUpperCase()}: ${txData.notes || 'Recorded successfully'}`);
     },
     [updateDbAndPersist, success]
   );
