@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-23T08:54:01.607Z",
+  "updatedAt": "2026-11-24T02:13:51.092Z",
   "settings": {
     "defaultCurrency": "IDR",
-    "usdToIdrRate": 16250,
+    "usdToIdrRate": 18195,
     "autoSyncToDrive": true,
     "syncIntervalMinutes": 5,
     "userName": "Executive Director",
@@ -22,7 +22,32 @@
     "isConfigured": false,
     "isConnected": false
   },
-  "accounts": [],
+  "accounts": [
+    {
+      "name": "Pocket",
+      "type": "bank",
+      "balance": 300000,
+      "currency": "IDR",
+      "color": "#3B82F6",
+      "icon": "Building2",
+      "institution": "Bank Central Asia",
+      "accountNumber": "-",
+      "id": "acc_1795424244727_h11u",
+      "updatedAt": "2026-11-23T08:57:49.157Z"
+    },
+    {
+      "name": "Piggy Bank",
+      "type": "bank",
+      "balance": 4900000,
+      "currency": "IDR",
+      "color": "#F59E0B",
+      "icon": "Building2",
+      "institution": "Bank Syariah Indonesia",
+      "accountNumber": "-",
+      "id": "acc_1795424294872_53fv",
+      "updatedAt": "2026-11-24T01:56:05.075Z"
+    }
+  ],
   "categories": [
     {
       "id": "cat_inc_salary",
@@ -54,11 +79,11 @@
     },
     {
       "id": "cat_exp_housing",
-      "name": "Housing & Property",
+      "name": "Food & Drinks",
       "type": "expense",
       "color": "#8B5CF6",
       "icon": "Home",
-      "monthlyBudget": 8000000
+      "monthlyBudget": 500000
     },
     {
       "id": "cat_exp_dining",
@@ -72,9 +97,9 @@
       "id": "cat_exp_transport",
       "name": "Transport & Fuel",
       "type": "expense",
-      "color": "#3B82F6",
+      "color": "#EF4444",
       "icon": "Car",
-      "monthlyBudget": 3000000
+      "monthlyBudget": 500000
     },
     {
       "id": "cat_exp_fitness",
@@ -110,8 +135,90 @@
     }
   ],
   "transactions": [],
-  "assets": [],
-  "tasks": [],
+  "assets": [
+    {
+      "name": "NVDA",
+      "ticker": "NVDA",
+      "assetClass": "us_stock",
+      "quantity": 0.8883,
+      "avgBuyPrice": 219.48,
+      "currentPrice": 164.86,
+      "currency": "USD",
+      "purchaseDate": "2026-11-23",
+      "id": "ast_1795485561072_z0vm",
+      "lastPriceUpdate": "2026-11-24T02:06:31.406Z",
+      "priceChange24h": 2.78
+    },
+    {
+      "name": "AAPL",
+      "ticker": "AAPL",
+      "assetClass": "us_stock",
+      "quantity": 0.3198,
+      "avgBuyPrice": 344.33,
+      "currentPrice": 348.92,
+      "currency": "USD",
+      "purchaseDate": "2026-11-24",
+      "id": "ast_1795485673264_s08d",
+      "lastPriceUpdate": "2026-11-24T02:06:47.716Z",
+      "priceChange24h": 0.43
+    },
+    {
+      "name": "MSFT",
+      "ticker": "MSFT",
+      "assetClass": "us_stock",
+      "quantity": 0.0622,
+      "avgBuyPrice": 531.25,
+      "currentPrice": 492.11,
+      "currency": "USD",
+      "purchaseDate": "2026-11-24",
+      "id": "ast_1795485738810_4et2",
+      "lastPriceUpdate": "2026-11-24T02:07:04.811Z"
+    },
+    {
+      "name": "Gold",
+      "ticker": "XAU",
+      "assetClass": "gold",
+      "quantity": 1,
+      "avgBuyPrice": 3300000,
+      "currentPrice": 2500000,
+      "currency": "IDR",
+      "purchaseDate": "2026-07-16",
+      "id": "ast_1795486196304_yhvu",
+      "lastPriceUpdate": "2026-11-24T02:09:56.304Z"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Revisi STK (TKO Layanan Umum)",
+      "categoryTag": "Work / Office",
+      "priority": "high",
+      "dueDate": "2026-11-25",
+      "recurrence": "none",
+      "status": "todo",
+      "id": "tsk_1795486326720_sfim",
+      "createdAt": "2026-11-24T02:12:06.720Z"
+    },
+    {
+      "title": "Meeting STK",
+      "categoryTag": "Work / Office",
+      "priority": "high",
+      "dueDate": "2026-11-27",
+      "recurrence": "none",
+      "status": "todo",
+      "id": "tsk_1795486294854_h9ta",
+      "createdAt": "2026-11-24T02:11:34.854Z"
+    },
+    {
+      "title": "Buku Saku Lapangan",
+      "categoryTag": "Work / Office",
+      "priority": "medium",
+      "dueDate": "2026-11-27",
+      "recurrence": "weekdays",
+      "status": "todo",
+      "id": "tsk_1795486261979_21pm",
+      "createdAt": "2026-11-24T02:11:01.979Z"
+    }
+  ],
   "taskWorkspaces": [
     {
       "id": "ws_work",
