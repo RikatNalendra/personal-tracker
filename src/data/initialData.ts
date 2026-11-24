@@ -10,6 +10,12 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
     syncIntervalMinutes: 5,
     userName: "Executive Director",
     userRole: "Principal Partner & Investor",
+    security: {
+      isSecurityEnabled: true,
+      masterPin: "8888",
+      authorizedEmail: "",
+      autoLockMinutes: 15,
+    },
   },
   driveConfig: {
     clientId: "",
@@ -129,6 +135,12 @@ export const SAMPLE_DEMO_DATABASE: MasterDatabaseSchema = {
     syncIntervalMinutes: 5,
     userName: "Executive Director",
     userRole: "Principal Partner & Investor",
+    security: {
+      isSecurityEnabled: true,
+      masterPin: "8888",
+      authorizedEmail: "",
+      autoLockMinutes: 15,
+    },
   },
   driveConfig: {
     clientId: "",

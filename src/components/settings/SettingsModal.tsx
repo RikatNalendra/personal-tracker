@@ -18,6 +18,12 @@ import {
   Shield,
   Layers,
   Sparkles,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  UserCheck,
+  Fingerprint,
 } from 'lucide-react';
 import { GoogleDriveGuideModal } from './GoogleDriveGuideModal';
 
@@ -43,7 +49,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     clearAllData,
   } = useDashboard();
 
-  const [activeTab, setActiveTab] = useState<'drive' | 'general' | 'backup'>('drive');
+  const [activeTab, setActiveTab] = useState<'drive' | 'general' | 'security' | 'backup'>('drive');
   const [clientIdInput, setClientIdInput] = useState<string>(database.driveConfig.clientId || '');
   const [usdRateInput, setUsdRateInput] = useState<string>(
     database.settings.usdToIdrRate.toString()
@@ -56,6 +62,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [autoRefreshIntervalInput, setAutoRefreshIntervalInput] = useState<number>(
     database.settings.autoRefreshPricesIntervalMinutes || 0
   );
+  const [isSecurityEnabledInput, setIsSecurityEnabledInput] = useState<boolean>(
+    database.settings.security?.isSecurityEnabled ?? true
+  );
+  const [masterPinInput, setMasterPinInput] = useState<string>(
+    database.settings.security?.masterPin || '8888'
+  );
+  const [authorizedEmailInput, setAuthorizedEmailInput] = useState<string>(
+    database.settings.security?.authorizedEmail || ''
+  );
+  const [autoLockMinutesInput, setAutoLockMinutesInput] = useState<number>(
+    database.settings.security?.autoLockMinutes ?? 15
+  );
+  const [showPinInput, setShowPinInput] = useState<boolean>(false);
+  const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isFetchingRate, setIsFetchingRate] = useState<boolean>(false);
 
@@ -68,6 +88,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setUserRoleInput(database.settings.userRole);
       setFinnhubApiKeyInput(database.settings.finnhubApiKey || '');
       setAutoRefreshIntervalInput(database.settings.autoRefreshPricesIntervalMinutes || 0);
+      setIsSecurityEnabledInput(database.settings.security?.isSecurityEnabled ?? true);
+      setMasterPinInput(database.settings.security?.masterPin || '8888');
+      setAuthorizedEmailInput(database.settings.security?.authorizedEmail || '');
+      setAutoLockMinutesInput(database.settings.security?.autoLockMinutes ?? 15);
+      setSecuritySuccess(null);
     }
   }, [isOpen, database.settings, database.driveConfig.clientId]);
 
@@ -103,6 +128,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     } finally {
       setIsFetchingRate(false);
     }
+  };
+
+  const handleSaveSecurity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSecurityEnabledInput && masterPinInput.trim().length < 4) {
+      alert('Master Passcode must be at least 4 characters');
+      return;
+    }
+    updateSettings({
+      security: {
+        isSecurityEnabled: isSecurityEnabledInput,
+        masterPin: masterPinInput.trim(),
+        authorizedEmail: authorizedEmailInput.trim(),
+        autoLockMinutes: autoLockMinutesInput,
+      },
+    });
+    setSecuritySuccess('Security configuration saved successfully!');
+    setTimeout(() => setSecuritySuccess(null), 3000);
   };
 
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +188,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           >
             <DollarSign className="w-4 h-4 text-[#10B981]" />
             <span>FX & Preferences</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center space-x-2 transition-all ${
+              activeTab === 'security'
+                ? 'bg-[#1E2433] text-[#F3F4F6] shadow-sm'
+                : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
+            }`}
+          >
+            <Shield className="w-4 h-4 text-[#8B5CF6]" />
+            <span>Security & Gate</span>
           </button>
           <button
             onClick={() => setActiveTab('backup')}
@@ -427,7 +481,132 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </form>
         )}
 
-        {/* 3. BACKUP & DATA CONTROLS */}
+        {/* 3. SECURITY & ACCESS CONTROL TAB */}
+        {activeTab === 'security' && (
+          <form onSubmit={handleSaveSecurity} className="space-y-4">
+            {/* Security Overview Banner */}
+            <div className="p-4 rounded-xl bg-[#171C2A] border border-[#1E2433] flex items-start space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 flex-shrink-0 mt-0.5">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold text-[#F3F4F6] flex items-center space-x-2">
+                  <span>Single-Account Executive Protection</span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                    PROTECTED
+                  </span>
+                </h4>
+                <p className="text-xs text-[#9CA3AF] mt-1 leading-relaxed">
+                  Lock your dashboard behind a Master Passcode and restrict Google Drive cloud synchronization strictly to your verified email account.
+                </p>
+              </div>
+            </div>
+
+            {/* Toggle Master Passcode Protection */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] flex items-center justify-between">
+              <div>
+                <label className="text-xs font-semibold text-[#F3F4F6] block">
+                  Require Master Passcode on Launch
+                </label>
+                <p className="text-[11px] text-[#9CA3AF] mt-0.5">
+                  Displays the executive lock screen whenever this dashboard is opened in a new tab or browser session.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-4">
+                <input
+                  type="checkbox"
+                  checked={isSecurityEnabledInput}
+                  onChange={(e) => setIsSecurityEnabledInput(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-[#1E2433] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8B5CF6]"></div>
+              </label>
+            </div>
+
+            {/* Master Passcode Input */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-[#F3F4F6] flex items-center space-x-1.5">
+                  <KeyRound className="w-4 h-4 text-[#F59E0B]" />
+                  <span>Master Passcode / PIN</span>
+                </label>
+                <span className="text-[10px] text-[#64748B]">Min. 4 characters</span>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPinInput ? 'text' : 'password'}
+                  value={masterPinInput}
+                  onChange={(e) => setMasterPinInput(e.target.value)}
+                  placeholder="Set your master passcode..."
+                  className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-violet-500/60 rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
+                  required={isSecurityEnabledInput}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPinInput(!showPinInput)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1"
+                >
+                  {showPinInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-[#64748B]">
+                Default passcode is <span className="font-mono text-amber-400">8888</span>. You can change it to any PIN or password.
+              </p>
+            </div>
+
+            {/* Google Drive Account Whitelist */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] space-y-2">
+              <label className="text-xs font-semibold text-[#F3F4F6] flex items-center space-x-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>Authorized Owner Google Account Whitelist</span>
+              </label>
+              <input
+                type="email"
+                value={authorizedEmailInput}
+                onChange={(e) => setAuthorizedEmailInput(e.target.value)}
+                placeholder="e.g. rikatnalendra@gmail.com"
+                className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-emerald-500/60 rounded-xl px-3.5 py-2.5 text-xs text-[#F3F4F6] focus:outline-none"
+              />
+              <p className="text-[10px] text-[#64748B]">
+                When set, attempts to connect Google Drive with any other email address will be strictly rejected.
+              </p>
+            </div>
+
+            {/* Inactivity Auto-Lock Cadence */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] space-y-2">
+              <label className="text-xs font-semibold text-[#F3F4F6] flex items-center space-x-1.5">
+                <Fingerprint className="w-4 h-4 text-blue-400" />
+                <span>Inactivity Auto-Lock</span>
+              </label>
+              <select
+                value={autoLockMinutesInput}
+                onChange={(e) => setAutoLockMinutesInput(parseInt(e.target.value, 10))}
+                className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3 py-2 text-xs text-[#F3F4F6] focus:border-violet-500 focus:outline-none"
+              >
+                <option value={0}>Disabled (Lock Only via Header Button or Tab Close)</option>
+                <option value={5}>Auto-lock after 5 Minutes of Inactivity</option>
+                <option value={15}>Auto-lock after 15 Minutes (Recommended)</option>
+                <option value={30}>Auto-lock after 30 Minutes</option>
+                <option value={60}>Auto-lock after 1 Hour</option>
+              </select>
+            </div>
+
+            {securitySuccess && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{securitySuccess}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-3 border-t border-[#1E2433]">
+              <Button variant="primary" size="sm" type="submit">
+                Save Security Settings
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* 4. BACKUP & DATA CONTROLS */}
         {activeTab === 'backup' && (
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-[#171C2A] border border-[#1E2433]">

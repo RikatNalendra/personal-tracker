@@ -574,6 +574,29 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const token = await googleDriveService.requestToken(clientId);
       const userInfo = await googleDriveService.getUserInfo(token);
 
+      // Single-Account Owner Whitelist Verification
+      const authorizedEmail = database.settings.security?.authorizedEmail?.trim().toLowerCase();
+      if (authorizedEmail && userInfo.email.trim().toLowerCase() !== authorizedEmail) {
+        googleDriveService.clearSession();
+        setSyncState('disconnected');
+        error('Access Denied', `Only the authorized owner (${authorizedEmail}) is permitted to link and sync this dashboard.`);
+        return;
+      }
+
+      // If authorizedEmail was blank, automatically set this connected email as the owner
+      if (!authorizedEmail && userInfo.email) {
+        updateSettings({
+          security: {
+            ...(database.settings.security || {
+              isSecurityEnabled: true,
+              masterPin: '8888',
+              autoLockMinutes: 15,
+            }),
+            authorizedEmail: userInfo.email,
+          },
+        });
+      }
+
       updateDbAndPersist((prev) => ({
         ...prev,
         driveConfig: {

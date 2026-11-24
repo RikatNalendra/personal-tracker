@@ -25,6 +25,12 @@ export const storageService = {
         settings: {
           ...INITIAL_DATABASE.settings,
           ...(parsed.settings || {}),
+          security: {
+            isSecurityEnabled: parsed.settings?.security?.isSecurityEnabled ?? INITIAL_DATABASE.settings.security?.isSecurityEnabled ?? true,
+            masterPin: parsed.settings?.security?.masterPin || INITIAL_DATABASE.settings.security?.masterPin || '8888',
+            authorizedEmail: parsed.settings?.security?.authorizedEmail ?? INITIAL_DATABASE.settings.security?.authorizedEmail ?? '',
+            autoLockMinutes: parsed.settings?.security?.autoLockMinutes ?? INITIAL_DATABASE.settings.security?.autoLockMinutes ?? 15,
+          },
         },
         driveConfig: {
           ...INITIAL_DATABASE.driveConfig,

@@ -8,6 +8,7 @@ import {
   Settings,
   DollarSign,
   TrendingUp,
+  Lock,
 } from 'lucide-react';
 import { ActiveTab } from './Sidebar';
 import { useDashboard } from '../../context/DashboardContext';
@@ -19,6 +20,7 @@ interface HeaderProps {
   onOpenMobileMenu: () => void;
   onOpenQuickAdd: () => void;
   onOpenSettings: () => void;
+  onLock?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenMobileMenu,
   onOpenQuickAdd,
   onOpenSettings,
+  onLock,
 }) => {
   const {
     database,
@@ -147,6 +150,17 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <span>Quick Entry</span>
         </Button>
+
+        {/* Quick Lock Button */}
+        {onLock && (
+          <button
+            onClick={onLock}
+            className="p-2 rounded-xl bg-[#131722] border border-[#1E2433] text-[#9CA3AF] hover:text-[#F59E0B] hover:bg-[#1E2433] hover:border-[#F59E0B]/30 transition-colors"
+            title="Lock Dashboard (Restricted Single-User Terminal)"
+          >
+            <Lock className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Settings button */}
         <button
