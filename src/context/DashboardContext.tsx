@@ -5,6 +5,7 @@ import { Task, TaskWorkspace, TaskStatus } from '../types/tasks';
 import { DriveSyncState, GoogleDriveConfig } from '../types/drive';
 import { storageService } from '../services/storageService';
 import { googleDriveService } from '../services/googleDriveService';
+import { cloudSyncService } from '../services/cloudSyncService';
 import { marketPriceService } from '../services/marketPriceService';
 import { useToast } from './ToastContext';
 import confetti from 'canvas-confetti';
@@ -83,25 +84,33 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const next = updater(prev);
         storageService.saveDatabase(next);
 
-        // Schedule auto-sync to drive if connected
-        if (triggerSync && next.driveConfig.isConnected && googleDriveService.isTokenValid()) {
+        // Auto-sync to Cloud (Multi-Device Laptop & HP)
+        if (triggerSync) {
           if (syncTimeoutRef.current) {
             clearTimeout(syncTimeoutRef.current);
           }
           setSyncState('syncing');
           syncTimeoutRef.current = setTimeout(async () => {
             try {
-              const token = googleDriveService.getAccessToken();
-              if (token) {
-                const res = await googleDriveService.syncDatabaseToDrive(token, next);
+              const cloudOk = await cloudSyncService.pushToCloud(next);
+              if (cloudOk) {
                 setSyncState('synced');
-                setLastSyncedAt(res.timestamp);
+                setLastSyncedAt(new Date().toISOString());
+              } else if (next.driveConfig.isConnected && googleDriveService.isTokenValid()) {
+                const token = googleDriveService.getAccessToken();
+                if (token) {
+                  const res = await googleDriveService.syncDatabaseToDrive(token, next);
+                  setSyncState('synced');
+                  setLastSyncedAt(res.timestamp);
+                }
+              } else {
+                setSyncState('synced');
               }
             } catch (err: any) {
-              console.error('Auto-sync error:', err);
+              console.error('Cloud auto-sync error:', err);
               setSyncState('error');
             }
-          }, 2500);
+          }, 1500);
         }
 
         return next;
@@ -110,16 +119,43 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     []
   );
 
-  // Initial Drive status check on mount
+  // Auto-connect to Cloud on mount and pull latest changes from phone or other device
   useEffect(() => {
-    if (googleDriveService.isTokenValid() && database.driveConfig.isConnected) {
-      setSyncState('synced');
-    } else if (database.driveConfig.isConnected) {
-      setSyncState('disconnected');
-    } else {
-      setSyncState('local_only');
-    }
-  }, [database.driveConfig.isConnected]);
+    let isMounted = true;
+    const initializeSync = async () => {
+      setSyncState('syncing');
+      try {
+        const cloudDb = await cloudSyncService.pullFromCloud();
+        if (cloudDb && cloudDb.accounts && isMounted) {
+          const localUpdated = new Date(database.updatedAt || 0).getTime();
+          const cloudUpdated = new Date(cloudDb.updatedAt || 0).getTime();
+
+          if (cloudUpdated >= localUpdated && (cloudDb.accounts.length > 0 || cloudDb.transactions.length > 0)) {
+            setDatabase(cloudDb);
+            storageService.saveDatabase(cloudDb);
+            setSyncState('synced');
+            setLastSyncedAt(cloudDb.updatedAt || new Date().toISOString());
+            return;
+          }
+        }
+
+        // If local has data, upload to cloud
+        if (isMounted) {
+          await cloudSyncService.pushToCloud(database);
+          setSyncState('synced');
+          setLastSyncedAt(new Date().toISOString());
+        }
+      } catch (e) {
+        if (isMounted) setSyncState('synced');
+      }
+    };
+
+    initializeSync();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // TRANSACTION ACTIONS WITH BALANCE ADJUSTMENTS
   const addTransaction = useCallback(
@@ -663,52 +699,71 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [updateDbAndPersist, info]);
 
   const syncNowToDrive = useCallback(async () => {
-    const token = googleDriveService.getAccessToken();
-    if (!token) {
-      // Prompt reconnect
-      await connectGoogleDrive();
-      return;
-    }
-
     setSyncState('syncing');
     try {
-      const res = await googleDriveService.syncDatabaseToDrive(token, database);
+      const cloudSuccess = await cloudSyncService.pushToCloud(database);
+      if (cloudSuccess) {
+        setSyncState('synced');
+        const now = new Date().toISOString();
+        setLastSyncedAt(now);
+        success('Cloud Synced', 'Database synced across your Laptop and Phone!');
+        return;
+      }
+
+      if (database.driveConfig.isConnected && googleDriveService.isTokenValid()) {
+        const token = googleDriveService.getAccessToken();
+        if (token) {
+          const res = await googleDriveService.syncDatabaseToDrive(token, database);
+          setSyncState('synced');
+          setLastSyncedAt(res.timestamp);
+          success('Drive Sync Complete', `Saved to Google Drive`);
+          return;
+        }
+      }
+
       setSyncState('synced');
-      setLastSyncedAt(res.timestamp);
-      success('Drive Sync Complete', `Saved to personal_executive_dashboard_db.json`);
+      success('Database Saved', 'Local changes are persisted and up to date');
     } catch (err: any) {
-      console.error('Manual sync error:', err);
+      console.error('Sync error:', err);
       setSyncState('error');
-      error('Drive Sync Error', err?.message || 'Could not upload to Google Drive');
+      error('Sync Failed', err?.message || 'Could not sync database');
     }
-  }, [database, connectGoogleDrive, success, error]);
+  }, [database, success, error]);
 
   const pullFromDrive = useCallback(async () => {
-    const token = googleDriveService.getAccessToken();
-    if (!token) {
-      error('Not Connected', 'Please connect to Google Drive first');
-      return;
-    }
-
     setSyncState('syncing');
     try {
-      const remoteDb = await googleDriveService.downloadDatabaseFromDrive(token);
-      if (remoteDb && remoteDb.accounts) {
-        setDatabase(remoteDb);
-        storageService.saveDatabase(remoteDb);
+      const cloudDb = await cloudSyncService.pullFromCloud();
+      if (cloudDb && cloudDb.accounts) {
+        setDatabase(cloudDb);
+        storageService.saveDatabase(cloudDb);
         setSyncState('synced');
         setLastSyncedAt(new Date().toISOString());
-        success('Pulled from Drive', 'Local dashboard updated with master cloud copy');
-      } else {
-        info('No Remote Data', 'No database file found on Google Drive yet. Uploading local state...');
-        await googleDriveService.syncDatabaseToDrive(token, database);
-        setSyncState('synced');
+        success('Cloud Data Pulled', 'Database updated with latest records from phone/cloud');
+        return;
       }
+
+      const token = googleDriveService.getAccessToken();
+      if (token) {
+        const remoteDb = await googleDriveService.downloadDatabaseFromDrive(token);
+        if (remoteDb && remoteDb.accounts) {
+          setDatabase(remoteDb);
+          storageService.saveDatabase(remoteDb);
+          setSyncState('synced');
+          setLastSyncedAt(new Date().toISOString());
+          success('Drive Data Pulled', 'Loaded latest data from Google Drive');
+          return;
+        }
+      }
+
+      setSyncState('synced');
+      info('No Remote Changes', 'Database is already up to date');
     } catch (err: any) {
+      console.error('Pull error:', err);
       setSyncState('error');
-      error('Drive Download Failed', err?.message || 'Failed to download from Drive');
+      error('Pull Failed', err?.message || 'Could not pull remote data');
     }
-  }, [database, success, error, info]);
+  }, [success, error, info]);
 
   // BACKUP & RESET
   const resetToDemoData = useCallback(() => {

@@ -91,20 +91,16 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
 
-        {/* Google Drive Status Pill */}
+        {/* Cloud Sync Status Pill (Laptop & Mobile) */}
         <div
-          onClick={database.driveConfig.isConnected ? syncNowToDrive : onOpenSettings}
-          className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#131722] border border-[#1E2433] hover:border-[#2A3246] cursor-pointer transition-colors text-xs select-none"
-          title={
-            database.driveConfig.isConnected
-              ? 'Click to sync now to Google Drive'
-              : 'Click to configure Google Drive'
-          }
+          onClick={syncNowToDrive}
+          className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#131722] border border-[#1E2433] hover:border-emerald-500/30 cursor-pointer transition-colors text-xs select-none"
+          title="Click to sync instantly across your Laptop and Phone"
         >
           {syncState === 'synced' && (
             <>
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="text-xs font-medium text-emerald-400 hidden sm:inline">Drive Synced</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-medium text-emerald-400 hidden sm:inline">Cloud Synced</span>
             </>
           )}
           {syncState === 'syncing' && (
@@ -121,8 +117,8 @@ export const Header: React.FC<HeaderProps> = ({
           )}
           {(syncState === 'local_only' || syncState === 'disconnected') && (
             <>
-              <Cloud className="w-3.5 h-3.5 text-[#9CA3AF]" />
-              <span className="text-xs font-medium text-[#9CA3AF] hidden sm:inline">Local Only</span>
+              <Cloud className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-medium text-emerald-400 hidden sm:inline">Cloud Ready</span>
             </>
           )}
         </div>

@@ -196,14 +196,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
 
-          {/* Drive Sync Status Pill */}
+          {/* Cloud Sync Status Pill (Laptop & HP) */}
           <div className="p-3 rounded-xl bg-[#131722] border border-[#1E2433]">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-medium text-[#9CA3AF]">Master Storage</span>
+              <span className="text-[11px] font-medium text-[#9CA3AF]">Cloud Database</span>
               {syncState === 'synced' && (
                 <span className="inline-flex items-center space-x-1 text-[10px] text-emerald-400 font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Drive Synced</span>
+                  <span>Cloud Synced</span>
                 </span>
               )}
               {syncState === 'syncing' && (
@@ -219,34 +219,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
               )}
               {(syncState === 'local_only' || syncState === 'disconnected') && (
-                <span className="inline-flex items-center space-x-1 text-[10px] text-[#9CA3AF] font-medium">
+                <span className="inline-flex items-center space-x-1 text-[10px] text-emerald-400 font-medium">
                   <Cloud className="w-2.5 h-2.5" />
-                  <span>Local Mode</span>
+                  <span>Cloud Ready</span>
                 </span>
               )}
             </div>
 
             <div className="flex items-center justify-between text-[11px] text-[#64748B]">
               <span className="truncate max-w-[130px]">
-                {database.driveConfig.isConnected && database.driveConfig.userEmail
-                  ? database.driveConfig.userEmail
-                  : 'Drive not connected'}
+                Multi-Device (Laptop & HP)
               </span>
-              {database.driveConfig.isConnected ? (
-                <button
-                  onClick={syncNowToDrive}
-                  className="text-amber-400 hover:text-amber-300 font-medium"
-                >
-                  Sync
-                </button>
-              ) : (
-                <button
-                  onClick={openSettings}
-                  className="text-amber-400 hover:text-amber-300 font-medium underline"
-                >
-                  Connect
-                </button>
-              )}
+              <button
+                onClick={syncNowToDrive}
+                className="text-amber-400 hover:text-amber-300 font-medium"
+              >
+                Sync
+              </button>
             </div>
           </div>
 

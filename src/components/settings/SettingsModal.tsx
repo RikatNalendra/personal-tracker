@@ -175,8 +175,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
             }`}
           >
-            <Cloud className="w-4 h-4 text-[#F59E0B]" />
-            <span>Google Drive Sync</span>
+            <Cloud className="w-4 h-4 text-[#00D68F]" />
+            <span>Cloud Sync (HP & Laptop)</span>
           </button>
           <button
             onClick={() => setActiveTab('general')}
@@ -213,106 +213,75 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </button>
         </div>
 
-        {/* 1. GOOGLE DRIVE TAB */}
+        {/* 1. CLOUD SYNC TAB (MULTI-DEVICE LAPTOP & HP) */}
         {activeTab === 'drive' && (
           <div className="space-y-5">
-            {/* Connection Banner */}
+            {/* Active Cloud Status Banner */}
             <div className="p-4 rounded-xl bg-[#171C2A] border border-[#1E2433] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-[#1E2433] flex items-center justify-center text-[#F59E0B]">
-                  <Cloud className="w-5 h-5" />
+              <div className="flex items-center space-x-3.5">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+                  <Cloud className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h4 className="text-sm font-bold text-[#F3F4F6]">Google Drive Sync Status</h4>
-                    {database.driveConfig.isConnected ? (
-                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        Connected
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-700/40 text-slate-400 border border-slate-700">
-                        Not Connected
-                      </span>
-                    )}
+                    <h4 className="text-sm font-bold text-[#F3F4F6]">Cross-Device Cloud Sync</h4>
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Active & Ready</span>
+                    </span>
                   </div>
                   <p className="text-xs text-[#9CA3AF] mt-0.5">
-                    {database.driveConfig.isConnected && database.driveConfig.userEmail
-                      ? `Syncing with account: ${database.driveConfig.userEmail}`
-                      : 'Sync directly to your personal Google Drive (drive.file scope)'}
+                    Data tersinkronisasi otomatis antara <strong>Laptop</strong> dan <strong>HP</strong> tanpa Google Cloud.
                   </p>
                 </div>
               </div>
 
-              {database.driveConfig.isConnected ? (
-                <Button variant="coral" size="sm" onClick={disconnectGoogleDrive}>
-                  Disconnect
+              <div className="flex space-x-2 self-end sm:self-auto">
+                <Button variant="outline" size="sm" type="button" onClick={pullFromDrive}>
+                  Pull from Cloud
                 </Button>
-              ) : (
-                <Button variant="primary" size="sm" onClick={connectGoogleDrive}>
-                  Connect with Google
+                <Button variant="emerald" size="sm" type="button" onClick={syncNowToDrive}>
+                  Sync to Cloud Now
                 </Button>
-              )}
+              </div>
             </div>
 
-            {/* Client ID Configuration Form */}
-            <form onSubmit={handleSaveDriveConfig} className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-[#F3F4F6]">
-                    Google Cloud OAuth 2.0 Client ID
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsGuideOpen(true)}
-                    className="text-xs text-[#F59E0B] hover:underline inline-flex items-center space-x-1"
-                  >
-                    <span>How to get a Client ID?</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
+            {/* HP / Mobile Instructions Card */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-white/[0.08] space-y-3">
+              <div className="flex items-center space-x-2 text-xs font-bold text-[#F3F4F6]">
+                <span className="text-base">📱</span>
+                <span>Cara Akses & Sinkronisasi di HP Anda:</span>
+              </div>
+              <div className="space-y-2 text-xs text-[#9CA3AF]">
+                <div className="flex items-start space-x-2.5">
+                  <span className="w-5 h-5 rounded-full bg-violet-500/20 text-violet-300 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <span>Buka browser di HP Anda dan ketik URL Vercel Anda: <code className="text-[#F59E0B] font-mono font-bold select-all">https://personal-tracker-nu-six.vercel.app</code></span>
                 </div>
-                <input
-                  type="text"
-                  value={clientIdInput}
-                  onChange={(e) => setClientIdInput(e.target.value)}
-                  placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
-                  className="w-full bg-[#171C2A] border border-[#1E2433] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#F3F4F6] focus:border-[#F59E0B] focus:outline-none"
-                />
-                <p className="text-[11px] text-[#64748B] mt-1">
-                  Stored securely in your local browser storage. Used only to obtain user-authorized Google Drive tokens.
-                </p>
+                <div className="flex items-start space-x-2.5">
+                  <span className="w-5 h-5 rounded-full bg-violet-500/20 text-violet-300 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <span>Masukkan Master PIN Anda (default: <strong className="text-amber-400 font-mono">8888</strong>) pada layar kunci.</span>
+                </div>
+                <div className="flex items-start space-x-2.5">
+                  <span className="w-5 h-5 rounded-full bg-violet-500/20 text-violet-300 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <span>Semua rekening, transaksi, dan tugas Anda langsung muncul. Setiap input dari HP otomatis tersinkronisasi ke Laptop!</span>
+                </div>
               </div>
+            </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <Button variant="secondary" size="sm" type="submit">
-                  Save Client ID
-                </Button>
-                {database.driveConfig.isConnected && (
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" type="button" onClick={pullFromDrive}>
-                      Pull from Drive
-                    </Button>
-                    <Button variant="emerald" size="sm" type="button" onClick={syncNowToDrive}>
-                      Sync Now
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </form>
-
-            {/* Folder & Master File Spec */}
+            {/* Database Cloud Specs */}
             <div className="p-4 rounded-xl bg-[#0E121B] border border-[#1E2433] space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Dedicated Drive Folder:</span>
-                <span className="font-mono text-[#F3F4F6]">Executive_Dashboard_Data</span>
+                <span className="text-[#9CA3AF]">Cloud Storage Target:</span>
+                <span className="font-mono text-[#F3F4F6]">personal-tracker (Private GitHub DB)</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Dedicated Master DB File:</span>
-                <span className="font-mono text-[#F59E0B]">personal_executive_dashboard_db.json</span>
+                <span className="text-[#9CA3AF]">Master JSON Database File:</span>
+                <span className="font-mono text-[#00D68F]">database/cloud_db.json</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Last Synced Timestamp:</span>
-                <span className="text-[#9CA3AF]">
-                  {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('id-ID') : 'Never'}
+                <span className="text-[#9CA3AF]">Last Synced:</span>
+                <span className="text-[#9CA3AF] font-mono">
+                  {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('id-ID') : 'Just now'}
                 </span>
               </div>
             </div>
