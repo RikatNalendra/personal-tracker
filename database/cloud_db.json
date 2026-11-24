@@ -1,1 +1,147 @@
-{"version":"1.0.0"}
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-11-23T08:54:01.607Z",
+  "settings": {
+    "defaultCurrency": "IDR",
+    "usdToIdrRate": 16250,
+    "autoSyncToDrive": true,
+    "syncIntervalMinutes": 5,
+    "userName": "Executive Director",
+    "userRole": "Principal Partner & Investor",
+    "security": {
+      "isSecurityEnabled": true,
+      "masterPin": "8888",
+      "authorizedEmail": "",
+      "autoLockMinutes": 15
+    }
+  },
+  "driveConfig": {
+    "clientId": "",
+    "folderName": "Executive_Dashboard_Data",
+    "fileName": "personal_executive_dashboard_db.json",
+    "isConfigured": false,
+    "isConnected": false
+  },
+  "accounts": [],
+  "categories": [
+    {
+      "id": "cat_inc_salary",
+      "name": "Executive Salary & Retainer",
+      "type": "income",
+      "color": "#10B981",
+      "icon": "Briefcase"
+    },
+    {
+      "id": "cat_inc_bonus",
+      "name": "Performance Bonus & Equity",
+      "type": "income",
+      "color": "#059669",
+      "icon": "Award"
+    },
+    {
+      "id": "cat_inc_dividends",
+      "name": "Stock & Fund Dividends",
+      "type": "income",
+      "color": "#F59E0B",
+      "icon": "TrendingUp"
+    },
+    {
+      "id": "cat_inc_advisory",
+      "name": "Advisory & Board Consulting",
+      "type": "income",
+      "color": "#3B82F6",
+      "icon": "Zap"
+    },
+    {
+      "id": "cat_exp_housing",
+      "name": "Housing & Property",
+      "type": "expense",
+      "color": "#8B5CF6",
+      "icon": "Home",
+      "monthlyBudget": 8000000
+    },
+    {
+      "id": "cat_exp_dining",
+      "name": "Meals & Executive Dining",
+      "type": "expense",
+      "color": "#F59E0B",
+      "icon": "Coffee",
+      "monthlyBudget": 5000000
+    },
+    {
+      "id": "cat_exp_transport",
+      "name": "Transport & Fuel",
+      "type": "expense",
+      "color": "#3B82F6",
+      "icon": "Car",
+      "monthlyBudget": 3000000
+    },
+    {
+      "id": "cat_exp_fitness",
+      "name": "Fitness, Golf & Wellness",
+      "type": "expense",
+      "color": "#10B981",
+      "icon": "Activity",
+      "monthlyBudget": 2500000
+    },
+    {
+      "id": "cat_exp_software",
+      "name": "Software & Cloud Services",
+      "type": "expense",
+      "color": "#06B6D4",
+      "icon": "Laptop",
+      "monthlyBudget": 1500000
+    },
+    {
+      "id": "cat_exp_family",
+      "name": "Family & Errands",
+      "type": "expense",
+      "color": "#EC4899",
+      "icon": "Heart",
+      "monthlyBudget": 4000000
+    },
+    {
+      "id": "cat_exp_shopping",
+      "name": "Apparel & Lifestyle",
+      "type": "expense",
+      "color": "#EF4444",
+      "icon": "ShoppingBag",
+      "monthlyBudget": 3000000
+    }
+  ],
+  "transactions": [],
+  "assets": [],
+  "tasks": [],
+  "taskWorkspaces": [
+    {
+      "id": "ws_work",
+      "name": "Work / Office",
+      "color": "#3B82F6",
+      "icon": "Briefcase"
+    },
+    {
+      "id": "ws_biz",
+      "name": "Business",
+      "color": "#F59E0B",
+      "icon": "TrendingUp"
+    },
+    {
+      "id": "ws_personal",
+      "name": "Personal",
+      "color": "#8B5CF6",
+      "icon": "User"
+    },
+    {
+      "id": "ws_fitness",
+      "name": "Fitness",
+      "color": "#10B981",
+      "icon": "Activity"
+    },
+    {
+      "id": "ws_learning",
+      "name": "Learning",
+      "color": "#06B6D4",
+      "icon": "BookOpen"
+    }
+  ]
+}
