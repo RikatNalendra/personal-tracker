@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   WalletCards,
   TrendingUp,
+  Sparkles,
   CheckSquare,
   Settings,
   Cloud,
@@ -15,7 +16,7 @@ import {
 import { useDashboard } from '../../context/DashboardContext';
 import { formatIDR } from '../../utils/currency';
 
-export type ActiveTab = 'overview' | 'cashflow' | 'portfolio' | 'tasks';
+export type ActiveTab = 'overview' | 'cashflow' | 'portfolio' | 'intelligence' | 'tasks';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -52,6 +53,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Portfolio & Assets',
       subtitle: 'Gold, Stocks, Crypto & Real Estate',
       icon: TrendingUp,
+    },
+    {
+      id: 'intelligence' as ActiveTab,
+      label: 'Financial Intelligence',
+      subtitle: 'Wealth Projections & FIRE Runway',
+      icon: Sparkles,
+      badge: 'NEW',
     },
     {
       id: 'tasks' as ActiveTab,
@@ -161,7 +169,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold truncate leading-tight">{item.label}</div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-sm font-semibold truncate leading-tight">{item.label}</span>
+                    {item.badge && (
+                      <span className="px-1.5 py-0.5 text-[9px] font-extrabold rounded-full bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 text-violet-300 border border-violet-500/40 tracking-wider shadow-sm shadow-violet-500/20">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-[11px] text-[#64748B] group-hover:text-[#9CA3AF] truncate mt-0.5">
                     {item.subtitle}
                   </div>

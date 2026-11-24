@@ -5,7 +5,7 @@ import { formatIDR } from '../../utils/currency';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { CategoryModal } from './CategoryModal';
-import { AlertCircle, CheckCircle, Plus, Edit2, Trash2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Plus, Edit2, Trash2, Sparkles, TrendingUp } from 'lucide-react';
 
 export const CategoryBudgets: React.FC = () => {
   const { database, deleteCategory } = useDashboard();
@@ -32,11 +32,16 @@ export const CategoryBudgets: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-[#F3F4F6]">Monthly Category Budgets</h3>
-          <p className="text-xs text-[#9CA3AF]">
-            Track monthly spending limits with 80% and 100% threshold alerts
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-[#FFB800] shadow-[0_0_8px_#FFB800]" />
+            <h3 className="text-base font-bold text-slate-100 tracking-tight">
+              Monthly Budget Guardrails
+            </h3>
+          </div>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Spending threshold controls with automated 80% caution & 100% breach alerts
           </p>
         </div>
         <Button
@@ -46,16 +51,16 @@ export const CategoryBudgets: React.FC = () => {
             setEditingCategory(null);
             setIsModalOpen(true);
           }}
-          icon={<Plus className="w-3.5 h-3.5 text-[#F59E0B]" />}
+          icon={<Plus className="w-3.5 h-3.5 text-[#FFB800]" />}
         >
-          Add Category
+          Add Category Budget
         </Button>
       </div>
 
       {budgetedCategories.length === 0 ? (
-        <Card className="p-8 text-center border-dashed border-[#1E2433]">
-          <h4 className="text-sm font-semibold text-[#F3F4F6]">No Category Budgets Configured</h4>
-          <p className="text-xs text-[#9CA3AF] max-w-md mx-auto mt-1 mb-4">
+        <Card className="p-8 text-center border-dashed border-white/[0.08]">
+          <h4 className="text-sm font-semibold text-slate-200">No Category Budgets Configured</h4>
+          <p className="text-xs text-slate-400 max-w-md mx-auto mt-1 mb-4">
             Set monthly budget limits on your expense categories to monitor spending thresholds and receive alerts.
           </p>
           <Button
@@ -65,13 +70,13 @@ export const CategoryBudgets: React.FC = () => {
               setEditingCategory(null);
               setIsModalOpen(true);
             }}
-            icon={<Plus className="w-3.5 h-3.5 text-[#F59E0B]" />}
+            icon={<Plus className="w-3.5 h-3.5 text-[#FFB800]" />}
           >
             Add Category Budget
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {budgetedCategories.map((cat) => {
             const spent = getSpentForCategory(cat.id);
             const budget = cat.monthlyBudget!;
@@ -83,14 +88,23 @@ export const CategoryBudgets: React.FC = () => {
             const isWarning = rawPercent >= 80 && rawPercent < 100;
 
             return (
-              <Card key={cat.id} className="p-4 group hover:border-[#2A3246] transition-all">
-                <div className="flex items-start justify-between mb-2">
+              <Card
+                key={cat.id}
+                className="p-5 group hover:border-white/[0.18] transition-all relative overflow-hidden"
+              >
+                {/* Header with Jewel Indicator */}
+                <div className="flex items-start justify-between mb-3.5">
                   <div className="flex items-center space-x-2.5">
                     <span
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: cat.color }}
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2 ring-white/10"
+                      style={{
+                        backgroundColor: cat.color,
+                        boxShadow: `0 0 10px ${cat.color}90`,
+                      }}
                     />
-                    <h4 className="text-xs font-semibold text-[#F3F4F6] truncate">{cat.name}</h4>
+                    <h4 className="text-xs font-bold text-slate-100 tracking-tight truncate max-w-[170px]">
+                      {cat.name}
+                    </h4>
                   </div>
 
                   <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -99,7 +113,8 @@ export const CategoryBudgets: React.FC = () => {
                         setEditingCategory(cat);
                         setIsModalOpen(true);
                       }}
-                      className="p-1 rounded hover:bg-[#1E2433] text-[#9CA3AF] hover:text-[#F3F4F6]"
+                      className="p-1 rounded-lg hover:bg-white/[0.08] text-slate-400 hover:text-slate-100 transition-colors"
+                      title="Edit Category"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -109,71 +124,77 @@ export const CategoryBudgets: React.FC = () => {
                           deleteCategory(cat.id);
                         }
                       }}
-                      className="p-1 rounded hover:bg-[#1E2433] text-red-400 hover:text-red-300"
+                      className="p-1 rounded-lg hover:bg-white/[0.08] text-[#FF3358] hover:text-red-300 transition-colors"
+                      title="Delete Category"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="mt-3">
-                  <div className="w-full h-2 rounded-full bg-[#1E2433] overflow-hidden">
+                {/* Modern High-Tech Neon Progress Bar */}
+                <div className="mt-2">
+                  <div className="w-full h-2 rounded-full bg-black/40 border border-white/[0.06] overflow-hidden p-[1px]">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         isOverBudget
-                          ? 'bg-[#EF4444]'
+                          ? 'bg-gradient-to-r from-[#FF3358] to-[#D91B40] shadow-[0_0_10px_#FF3358]'
                           : isWarning
-                          ? 'bg-[#F59E0B]'
-                          : 'bg-[#10B981]'
+                          ? 'bg-gradient-to-r from-[#FFB800] to-[#D97706] shadow-[0_0_10px_#FFB800]'
+                          : 'bg-gradient-to-r from-[#00D68F] to-[#00A86B] shadow-[0_0_10px_#00D68F]'
                       }`}
                       style={{ width: `${percent}%` }}
                     />
                   </div>
                 </div>
 
-                {/* Stats & Threshold label */}
-                <div className="mt-3 flex items-center justify-between text-xs">
+                {/* Amount Readouts */}
+                <div className="mt-3.5 flex items-center justify-between text-xs font-mono">
                   <div>
-                    <span className="text-[#9CA3AF]">Spent: </span>
-                    <span className="font-semibold text-[#F3F4F6] font-mono">
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-sans font-semibold">
+                      Spent
+                    </span>
+                    <span className="font-bold text-slate-200">
                       {formatIDR(spent)}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[#64748B]">Limit: </span>
-                    <span className="font-medium text-[#9CA3AF] font-mono">
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-sans font-semibold">
+                      Limit
+                    </span>
+                    <span className="font-semibold text-slate-400">
                       {formatIDR(budget)}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-2 pt-2 border-t border-[#1E2433]/60 flex items-center justify-between text-[11px]">
-                  <div className="flex items-center space-x-1">
+                {/* Status Badge & Percentage Footer */}
+                <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
+                  <div className="flex items-center space-x-1.5">
                     {isOverBudget ? (
-                      <span className="text-red-400 font-semibold flex items-center space-x-1">
-                        <AlertCircle className="w-3 h-3" />
-                        <span>Exceeded by {formatIDR(Math.abs(remaining))}</span>
+                      <span className="text-[#FF3358] font-bold flex items-center space-x-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Breached by {formatIDR(Math.abs(remaining))}</span>
                       </span>
                     ) : isWarning ? (
-                      <span className="text-amber-400 font-medium flex items-center space-x-1">
-                        <AlertCircle className="w-3 h-3" />
-                        <span>{100 - rawPercent}% remaining</span>
+                      <span className="text-[#FFB800] font-semibold flex items-center space-x-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{100 - rawPercent}% remaining capacity</span>
                       </span>
                     ) : (
-                      <span className="text-emerald-400 font-medium flex items-center space-x-1">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>On Track ({formatIDR(remaining)} left)</span>
+                      <span className="text-[#00D68F] font-semibold flex items-center space-x-1">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Safe ({formatIDR(remaining)} left)</span>
                       </span>
                     )}
                   </div>
                   <span
-                    className={`font-mono font-bold text-xs ${
+                    className={`font-mono font-extrabold text-xs px-2 py-0.5 rounded-md ${
                       isOverBudget
-                        ? 'text-red-400'
+                        ? 'bg-[#FF3358]/15 text-[#FF3358] border border-[#FF3358]/30'
                         : isWarning
-                        ? 'text-amber-400'
-                        : 'text-emerald-400'
+                        ? 'bg-[#FFB800]/15 text-[#FFB800] border border-[#FFB800]/30'
+                        : 'bg-[#00D68F]/15 text-[#00D68F] border border-[#00D68F]/30'
                     }`}
                   >
                     {rawPercent}%

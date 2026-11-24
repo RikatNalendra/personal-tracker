@@ -9,35 +9,46 @@ export default {
     extend: {
       colors: {
         dark: {
-          bg: '#0B0E14',
-          card: '#131722',
-          surface: '#171C2A',
-          hover: '#1D2335',
-          border: '#1E2433',
-          borderLight: '#2A3246',
-          text: '#F3F4F6',
-          muted: '#9CA3AF',
+          bg: '#080A10',         // Ultra-deep obsidian matte
+          surface: '#0D111A',    // Elevated card surface (titanium)
+          card: '#101522',       // Interactive card surface
+          cardHover: '#161C2C',  // Hover elevated surface
+          border: 'rgba(255, 255, 255, 0.08)',
+          borderHover: 'rgba(255, 255, 255, 0.16)',
+          borderBright: 'rgba(255, 255, 255, 0.25)',
+          text: '#F8FAFC',
+          muted: '#94A3B8',
           subtle: '#64748B',
         },
         executive: {
-          emerald: '#10B981',
-          coral: '#EF4444',
-          gold: '#F59E0B',
-          amber: '#D97706',
-          blue: '#3B82F6',
+          emerald: '#00D68F',    // Bold vibrant emerald
+          emeraldDeep: '#00875A',
+          ruby: '#FF3358',       // Bold rich crimson ruby
+          rubyDeep: '#A8102B',
+          gold: '#FFB800',       // Bold royal champagne gold
+          goldDeep: '#D97706',
+          violet: '#8B5CF6',     // Gen Z electric violet
           indigo: '#6366F1',
-          purple: '#8B5CF6',
-          cyan: '#06B6D4',
+          cyan: '#00D2FF',       // Cyber cyan
+          blue: '#2563EB',
         }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'monospace'],
       },
       boxShadow: {
-        'card-glow': '0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.05)',
-        'emerald-glow': '0 0 15px -2px rgba(16, 185, 129, 0.25)',
-        'gold-glow': '0 0 15px -2px rgba(245, 158, 11, 0.25)',
-        'coral-glow': '0 0 15px -2px rgba(239, 68, 68, 0.25)',
+        'glow-gold': '0 0 25px -4px rgba(255, 184, 0, 0.25), 0 0 8px -2px rgba(255, 184, 0, 0.15)',
+        'glow-emerald': '0 0 25px -4px rgba(0, 214, 143, 0.25), 0 0 8px -2px rgba(0, 214, 143, 0.15)',
+        'glow-ruby': '0 0 25px -4px rgba(255, 51, 88, 0.25), 0 0 8px -2px rgba(255, 51, 88, 0.15)',
+        'glow-violet': '0 0 25px -4px rgba(139, 92, 246, 0.25), 0 0 8px -2px rgba(139, 92, 246, 0.15)',
+        'glow-cyan': '0 0 25px -4px rgba(0, 210, 255, 0.25), 0 0 8px -2px rgba(0, 210, 255, 0.15)',
+        'glass-card': '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+        'glass-inset': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4)',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'noise-pattern': 'radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0)',
       }
     },
   },

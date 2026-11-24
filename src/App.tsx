@@ -6,6 +6,7 @@ import { SettingsModal } from './components/settings/SettingsModal';
 import { ExecutiveOverview } from './components/overview/ExecutiveOverview';
 import { CashFlowView } from './components/finance/CashFlowView';
 import { PortfolioView } from './components/portfolio/PortfolioView';
+import { IntelligenceView } from './components/intelligence/IntelligenceView';
 import { TaskManagerView } from './components/tasks/TaskManagerView';
 import { useDashboard } from './context/DashboardContext';
 
@@ -51,6 +52,8 @@ export const AppContent: React.FC = () => {
           )}
 
           {activeTab === 'portfolio' && <PortfolioView />}
+
+          {activeTab === 'intelligence' && <IntelligenceView />}
 
           {activeTab === 'tasks' && <TaskManagerView />}
         </main>

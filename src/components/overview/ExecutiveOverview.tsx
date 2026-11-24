@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Shield,
   Layers,
+  Sparkles,
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
@@ -59,49 +60,63 @@ export const ExecutiveOverview: React.FC<ExecutiveOverviewProps> = ({
       </div>
 
       {/* Quick Action Navigation Deck */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pt-2">
         <button
           onClick={() => setActiveTab('cashflow')}
-          className="p-4 rounded-2xl bg-[#131722] border border-[#1E2433] hover:border-[#F59E0B]/40 hover:bg-[#171C2A] text-left transition-all group"
+          className="p-4 rounded-2xl bg-[#0D111A] border border-white/[0.08] hover:border-emerald-500/40 hover:bg-[#101522] text-left transition-all group card-rim"
         >
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform border border-emerald-500/20">
             <DollarSign className="w-5 h-5" />
           </div>
           <h4 className="text-xs font-bold text-[#F3F4F6]">Cash Flow & Wallets</h4>
-          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Manage bank accounts & budgets</p>
+          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Bank accounts & budgets</p>
         </button>
 
         <button
           onClick={() => setActiveTab('portfolio')}
-          className="p-4 rounded-2xl bg-[#131722] border border-[#1E2433] hover:border-[#F59E0B]/40 hover:bg-[#171C2A] text-left transition-all group"
+          className="p-4 rounded-2xl bg-[#0D111A] border border-white/[0.08] hover:border-amber-500/40 hover:bg-[#101522] text-left transition-all group card-rim"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 text-[#F59E0B] flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform border border-amber-500/20">
             <TrendingUp className="w-5 h-5" />
           </div>
           <h4 className="text-xs font-bold text-[#F3F4F6]">Assets & Gold Bullion</h4>
-          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Live IDX, US stocks & Antam</p>
+          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Live IDX, US & Antam</p>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('intelligence')}
+          className="p-4 rounded-2xl bg-[#0D111A] border border-violet-500/30 hover:border-violet-500/60 hover:bg-[#101522] text-left transition-all group card-rim relative overflow-hidden"
+        >
+          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 text-violet-300 text-[9px] font-extrabold border border-violet-500/30">
+            NEW
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-violet-500/15 text-violet-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform border border-violet-500/30 shadow-[0_0_12px_rgba(139,92,246,0.25)]">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <h4 className="text-xs font-bold text-[#F3F4F6]">Intelligence & FIRE</h4>
+          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Wealth trajectory & runway</p>
         </button>
 
         <button
           onClick={() => setActiveTab('tasks')}
-          className="p-4 rounded-2xl bg-[#131722] border border-[#1E2433] hover:border-[#F59E0B]/40 hover:bg-[#171C2A] text-left transition-all group"
+          className="p-4 rounded-2xl bg-[#0D111A] border border-white/[0.08] hover:border-blue-500/40 hover:bg-[#101522] text-left transition-all group card-rim"
         >
-          <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform border border-blue-500/20">
             <CheckSquare className="w-5 h-5" />
           </div>
           <h4 className="text-xs font-bold text-[#F3F4F6]">Operations & Habits</h4>
-          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Focus checklist & Kanban board</p>
+          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Focus checklist & Kanban</p>
         </button>
 
         <button
           onClick={onOpenSettings}
-          className="p-4 rounded-2xl bg-[#131722] border border-[#1E2433] hover:border-[#F59E0B]/40 hover:bg-[#171C2A] text-left transition-all group"
+          className="p-4 rounded-2xl bg-[#0D111A] border border-white/[0.08] hover:border-white/20 hover:bg-[#101522] text-left transition-all group card-rim"
         >
-          <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-white/10 text-slate-300 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform border border-white/10">
             <Cloud className="w-5 h-5" />
           </div>
           <h4 className="text-xs font-bold text-[#F3F4F6]">Drive & Database</h4>
-          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Google Cloud OAuth & JSON sync</p>
+          <p className="text-[11px] text-[#9CA3AF] mt-0.5">Cloud OAuth & JSON sync</p>
         </button>
       </div>
     </div>

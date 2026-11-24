@@ -1,45 +1,51 @@
+// Curated bold, executive jewel tones (clean, professional, non-generic)
 export const ACCENT_COLORS = [
-  '#10B981', // Emerald
-  '#3B82F6', // Blue
-  '#F59E0B', // Gold/Amber
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#EF4444', // Coral/Red
-  '#14B8A6', // Teal
-  '#6366F1', // Indigo
-  '#9CA3AF', // Slate
+  '#00D68F', // Executive Emerald
+  '#FFB800', // Imperial Gold
+  '#2563EB', // Sapphire Blue
+  '#FF3358', // Crimson Ruby
+  '#8B5CF6', // Electric Violet
+  '#00D2FF', // Cyber Cyan
+  '#6366F1', // Deep Indigo
+  '#0D9488', // Titanium Teal
+  '#EC4899', // Rich Rose
+  '#94A3B8', // Platinum Slate
 ];
 
 export function getPriorityBadgeColor(priority: 'low' | 'medium' | 'high'): {
   bg: string;
   text: string;
   border: string;
+  glow: string;
 } {
   switch (priority) {
     case 'high':
       return {
-        bg: 'bg-red-500/10',
-        text: 'text-red-400',
-        border: 'border-red-500/30',
+        bg: 'bg-[#FF3358]/10',
+        text: 'text-[#FF3358]',
+        border: 'border-[#FF3358]/30',
+        glow: 'shadow-[0_0_12px_rgba(255,51,88,0.2)]',
       };
     case 'medium':
       return {
-        bg: 'bg-amber-500/10',
-        text: 'text-amber-400',
-        border: 'border-amber-500/30',
+        bg: 'bg-[#FFB800]/10',
+        text: 'text-[#FFB800]',
+        border: 'border-[#FFB800]/30',
+        glow: 'shadow-[0_0_12px_rgba(255,184,0,0.2)]',
       };
     case 'low':
       return {
-        bg: 'bg-emerald-500/10',
-        text: 'text-emerald-400',
-        border: 'border-emerald-500/30',
+        bg: 'bg-[#00D68F]/10',
+        text: 'text-[#00D68F]',
+        border: 'border-[#00D68F]/30',
+        glow: 'shadow-[0_0_12px_rgba(0,214,143,0.2)]',
       };
     default:
       return {
-        bg: 'bg-gray-500/10',
-        text: 'text-gray-400',
-        border: 'border-gray-500/30',
+        bg: 'bg-slate-500/10',
+        text: 'text-slate-400',
+        border: 'border-slate-500/30',
+        glow: '',
       };
   }
 }
@@ -47,17 +53,17 @@ export function getPriorityBadgeColor(priority: 'low' | 'medium' | 'high'): {
 export function getAssetClassColor(assetClass: string): string {
   switch (assetClass) {
     case 'gold':
-      return '#F59E0B'; // Gold
+      return '#FFB800'; // Bold Champagne Gold
     case 'idx_stock':
-      return '#3B82F6'; // Blue
+      return '#2563EB'; // Authoritative Sapphire
     case 'us_stock':
-      return '#8B5CF6'; // Purple
+      return '#8B5CF6'; // Electric Violet
     case 'crypto':
-      return '#10B981'; // Emerald
+      return '#00D68F'; // Bold Emerald
     case 'custom':
-      return '#06B6D4'; // Cyan
+      return '#00D2FF'; // Cyber Cyan
     default:
-      return '#9CA3AF';
+      return '#94A3B8';
   }
 }
 

@@ -45,6 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
         return { title: 'Cash Flow & Budgets', badge: 'Income, Expense & Wallets' };
       case 'portfolio':
         return { title: 'Portfolio & Assets', badge: 'Live Valuation' };
+      case 'intelligence':
+        return { title: 'Financial Intelligence', badge: 'Wealth Projections & FIRE' };
       case 'tasks':
         return { title: 'Daily Tasks & Operations', badge: 'Checklists & Kanban' };
     }
