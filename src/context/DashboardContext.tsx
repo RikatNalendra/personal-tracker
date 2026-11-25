@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { MasterDatabaseSchema, AppSettings } from '../types/database';
+import { MasterDatabaseSchema, AppSettings, GoogleSheetsConfig } from '../types/database';
 import { Account, Category, Transaction, Asset } from '../types/finance';
 import { Task, TaskWorkspace, TaskStatus } from '../types/tasks';
 import { DriveSyncState, GoogleDriveConfig } from '../types/drive';
 import { storageService } from '../services/storageService';
 import { googleDriveService } from '../services/googleDriveService';
 import { cloudSyncService } from '../services/cloudSyncService';
+import { googleSheetsService } from '../services/googleSheetsService';
 import { marketPriceService } from '../services/marketPriceService';
 import { useToast } from './ToastContext';
 import confetti from 'canvas-confetti';
@@ -48,13 +49,17 @@ interface DashboardContextType {
   // Workspaces
   addTaskWorkspace: (ws: Omit<TaskWorkspace, 'id'>) => void;
 
-  // Settings & Drive
+  // Settings, Drive & Google Sheets
   updateSettings: (settings: Partial<AppSettings>) => void;
   updateDriveConfig: (config: Partial<GoogleDriveConfig>) => void;
   connectGoogleDrive: () => Promise<void>;
   disconnectGoogleDrive: () => void;
   syncNowToDrive: () => Promise<void>;
   pullFromDrive: () => Promise<void>;
+  sheetsSyncState: 'idle' | 'syncing' | 'synced' | 'error';
+  lastSheetsSyncedAt: string | null;
+  updateSheetsConfig: (config: Partial<GoogleSheetsConfig>) => void;
+  syncNowToSheets: () => Promise<boolean>;
 
   // Backup & Reset
   resetToDemoData: () => void;
@@ -73,6 +78,10 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [isRefreshingPrices, setIsRefreshingPrices] = useState<boolean>(false);
+  const [sheetsSyncState, setSheetsSyncState] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [lastSheetsSyncedAt, setLastSheetsSyncedAt] = useState<string | null>(() => {
+    return storageService.loadDatabase().sheetsConfig?.lastSyncedAt || null;
+  });
 
   // Debounced auto-sync ref
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,7 +93,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const next = updater(prev);
         storageService.saveDatabase(next);
 
-        // Auto-sync to Cloud (Multi-Device Laptop & HP)
+        // Auto-sync to Cloud (Multi-Device Laptop & HP) & Google Sheets
         if (triggerSync) {
           if (syncTimeoutRef.current) {
             clearTimeout(syncTimeoutRef.current);
@@ -105,6 +114,22 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 }
               } else {
                 setSyncState('synced');
+              }
+
+              // Auto-sync to Google Sheets (Mutasi Transaksi & Saldo) if configured
+              if (next.sheetsConfig?.isConfigured && next.sheetsConfig?.webhookUrl && next.sheetsConfig?.autoSync !== false) {
+                try {
+                  setSheetsSyncState('syncing');
+                  const sRes = await googleSheetsService.syncAllToSheets(next.sheetsConfig.webhookUrl, next);
+                  if (sRes.success) {
+                    setSheetsSyncState('synced');
+                    setLastSheetsSyncedAt(new Date().toISOString());
+                  } else {
+                    setSheetsSyncState('error');
+                  }
+                } catch {
+                  setSheetsSyncState('error');
+                }
               }
             } catch (err: any) {
               console.error('Cloud auto-sync error:', err);
@@ -191,6 +216,16 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           }
           return acc;
         });
+
+        // Quick append to Google Sheets if configured
+        if (prev.sheetsConfig?.isConfigured && prev.sheetsConfig?.webhookUrl && prev.sheetsConfig?.autoSync !== false) {
+          googleSheetsService.appendTransactionToSheets(
+            prev.sheetsConfig.webhookUrl,
+            newTx,
+            updatedAccounts,
+            prev.categories
+          );
+        }
 
         return {
           ...prev,
@@ -765,6 +800,66 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [success, error, info]);
 
+  // GOOGLE SHEETS LIVE INTEGRATION
+  const updateSheetsConfig = useCallback(
+    (configData: Partial<GoogleSheetsConfig>) => {
+      updateDbAndPersist((prev) => ({
+        ...prev,
+        sheetsConfig: {
+          ...(prev.sheetsConfig || {
+            webhookUrl: '',
+            sheetName: 'Executive Personal Tracker',
+            isConfigured: false,
+            autoSync: true,
+          }),
+          ...configData,
+        },
+      }));
+      info('Google Sheets Config Saved', 'Pengaturan Webhook Sheets berhasil disimpan');
+    },
+    [updateDbAndPersist, info]
+  );
+
+  const syncNowToSheets = useCallback(async (): Promise<boolean> => {
+    const webhookUrl = database.sheetsConfig?.webhookUrl;
+    if (!webhookUrl || !webhookUrl.trim().startsWith('https://script.google.com/macros/s/')) {
+      error(
+        'Google Sheets Belum Terhubung',
+        'Masukkan URL Webhook Google Apps Script di Settings terlebih dahulu.'
+      );
+      return false;
+    }
+
+    setSheetsSyncState('syncing');
+    try {
+      const res = await googleSheetsService.syncAllToSheets(webhookUrl, database);
+      if (res.success) {
+        setSheetsSyncState('synced');
+        const now = new Date().toISOString();
+        setLastSheetsSyncedAt(now);
+        updateDbAndPersist((prev) => ({
+          ...prev,
+          sheetsConfig: {
+            ...(prev.sheetsConfig || { webhookUrl, autoSync: true }),
+            isConfigured: true,
+            lastSyncedAt: now,
+            lastError: undefined,
+          },
+        }), false);
+        success('Google Sheets Tersinkronisasi', res.message);
+        return true;
+      } else {
+        setSheetsSyncState('error');
+        error('Sinkronisasi Google Sheets Gagal', res.message);
+        return false;
+      }
+    } catch (err: any) {
+      setSheetsSyncState('error');
+      error('Sinkronisasi Google Sheets Gagal', err?.message || 'Network error');
+      return false;
+    }
+  }, [database, updateDbAndPersist, success, error]);
+
   // BACKUP & RESET
   const resetToDemoData = useCallback(() => {
     const demo = storageService.resetToDemo();
@@ -829,6 +924,10 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         disconnectGoogleDrive,
         syncNowToDrive,
         pullFromDrive,
+        sheetsSyncState,
+        lastSheetsSyncedAt,
+        updateSheetsConfig,
+        syncNowToSheets,
         resetToDemoData,
         clearAllData,
         exportDatabase,

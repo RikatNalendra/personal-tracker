@@ -71,6 +71,10 @@ export const storageService = {
           ...INITIAL_DATABASE.driveConfig,
           ...(parsed.driveConfig || {}),
         },
+        sheetsConfig: {
+          ...(INITIAL_DATABASE.sheetsConfig || { webhookUrl: '', sheetName: 'Executive Personal Tracker', isConfigured: false, autoSync: true }),
+          ...(parsed.sheetsConfig || {}),
+        },
       };
     } catch (e) {
       console.error('Error loading database from localStorage:', e);

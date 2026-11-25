@@ -12,6 +12,7 @@ import {
   X,
   ExternalLink,
   ShieldCheck,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { formatIDR } from '../../utils/currency';
@@ -33,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   setIsMobileOpen,
 }) => {
-  const { database, syncState, lastSyncedAt, syncNowToDrive } = useDashboard();
+  const { database, syncState, lastSyncedAt, syncNowToDrive, sheetsSyncState, syncNowToSheets } = useDashboard();
 
   const navItems = [
     {
@@ -237,6 +238,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 Sync
               </button>
             </div>
+
+            {/* Google Sheets Active Indicator */}
+            {database.sheetsConfig?.isConfigured && (
+              <div className="flex items-center justify-between text-[11px] pt-2 mt-2 border-t border-[#1E2433]">
+                <span className="flex items-center space-x-1.5 text-emerald-400 font-medium">
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Google Sheets</span>
+                </span>
+                <button
+                  onClick={syncNowToSheets}
+                  className="text-emerald-400 hover:text-emerald-300 font-medium text-[10px] uppercase font-mono"
+                >
+                  {sheetsSyncState === 'syncing' ? '...' : 'Sync'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Settings Trigger */}
@@ -245,7 +262,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl bg-[#1E2433]/70 hover:bg-[#1E2433] text-xs font-medium text-[#F3F4F6] border border-[#1E2433] transition-colors"
           >
             <Settings className="w-4 h-4 text-[#9CA3AF]" />
-            <span>Settings & Google Cloud</span>
+            <span>Settings & Google Sheets</span>
           </button>
         </div>
       </aside>

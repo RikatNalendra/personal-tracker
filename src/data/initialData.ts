@@ -24,6 +24,12 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
     isConfigured: false,
     isConnected: false,
   },
+  sheetsConfig: {
+    webhookUrl: "",
+    sheetName: "Executive Personal Tracker",
+    isConfigured: false,
+    autoSync: true,
+  },
   accounts: [],
   categories: [
     // Income Categories
@@ -148,6 +154,12 @@ export const SAMPLE_DEMO_DATABASE: MasterDatabaseSchema = {
     fileName: "personal_executive_dashboard_db.json",
     isConfigured: false,
     isConnected: false,
+  },
+  sheetsConfig: {
+    webhookUrl: "",
+    sheetName: "Executive Personal Tracker",
+    isConfigured: false,
+    autoSync: true,
   },
   accounts: [
     {

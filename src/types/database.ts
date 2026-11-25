@@ -2,6 +2,15 @@ import { Account, Category, Transaction, Asset } from './finance';
 import { Task, TaskWorkspace } from './tasks';
 import { GoogleDriveConfig } from './drive';
 
+export interface GoogleSheetsConfig {
+  webhookUrl: string;
+  sheetName?: string;
+  isConfigured: boolean;
+  autoSync: boolean;
+  lastSyncedAt?: string;
+  lastError?: string;
+}
+
 export interface SecuritySettings {
   isSecurityEnabled: boolean;
   masterPin: string; // 4-8 digit PIN or password
@@ -27,6 +36,7 @@ export interface MasterDatabaseSchema {
   updatedAt: string;
   settings: AppSettings;
   driveConfig: GoogleDriveConfig;
+  sheetsConfig?: GoogleSheetsConfig;
   accounts: Account[];
   categories: Category[];
   transactions: Transaction[];
