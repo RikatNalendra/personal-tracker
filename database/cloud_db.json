@@ -22,6 +22,13 @@
     "isConfigured": false,
     "isConnected": false
   },
+  "sheetsConfig": {
+    "webhookUrl": "https://script.google.com/macros/s/AKfycbztMoBWY-yK5mjv2NuBAWFm2oiYAu6vM7mRFPKuaApRxNgSNaH6V0PeF0WWzNY1s9qz/exec",
+    "sheetName": "Executive Personal Tracker",
+    "isConfigured": true,
+    "autoSync": true,
+    "lastSyncedAt": "2026-11-26T09:25:00.000Z"
+  },
   "accounts": [
     {
       "name": "Pocket",

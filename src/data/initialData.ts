@@ -25,9 +25,9 @@ export const INITIAL_DATABASE: MasterDatabaseSchema = {
     isConnected: false,
   },
   sheetsConfig: {
-    webhookUrl: "",
+    webhookUrl: "https://script.google.com/macros/s/AKfycbztMoBWY-yK5mjv2NuBAWFm2oiYAu6vM7mRFPKuaApRxNgSNaH6V0PeF0WWzNY1s9qz/exec",
     sheetName: "Executive Personal Tracker",
-    isConfigured: false,
+    isConfigured: true,
     autoSync: true,
   },
   accounts: [],
@@ -156,9 +156,9 @@ export const SAMPLE_DEMO_DATABASE: MasterDatabaseSchema = {
     isConnected: false,
   },
   sheetsConfig: {
-    webhookUrl: "",
+    webhookUrl: "https://script.google.com/macros/s/AKfycbztMoBWY-yK5mjv2NuBAWFm2oiYAu6vM7mRFPKuaApRxNgSNaH6V0PeF0WWzNY1s9qz/exec",
     sheetName: "Executive Personal Tracker",
-    isConfigured: false,
+    isConfigured: true,
     autoSync: true,
   },
   accounts: [
