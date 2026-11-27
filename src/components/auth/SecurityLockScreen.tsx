@@ -90,11 +90,6 @@ export const SecurityLockScreen: React.FC<SecurityLockScreenProps> = ({ onUnlock
             <Lock className="w-8 h-8 text-[#F59E0B]" />
           </div>
 
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-bold tracking-wider uppercase mb-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span>Restricted Single-Account Access</span>
-          </div>
-
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#F3F4F6] tracking-tight">
             Executive Terminal
           </h1>
