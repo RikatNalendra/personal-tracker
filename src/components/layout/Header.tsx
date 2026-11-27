@@ -3,13 +3,8 @@ import {
   Menu,
   RefreshCw,
   Plus,
-  Cloud,
-  AlertTriangle,
   Settings,
-  DollarSign,
-  TrendingUp,
   Lock,
-  FileSpreadsheet,
 } from 'lucide-react';
 import { ActiveTab } from './Sidebar';
 import { useDashboard } from '../../context/DashboardContext';
@@ -33,12 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const {
     database,
-    syncState,
-    sheetsSyncState,
     isRefreshingPrices,
     refreshLivePrices,
-    syncNowToDrive,
-    syncNowToSheets,
   } = useDashboard();
 
   const { greeting, subtitle } = formatExecutiveGreeting();
@@ -92,57 +83,6 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-[#F59E0B] font-mono font-bold">
             Rp {database.settings.usdToIdrRate.toLocaleString('id-ID')}
           </span>
-        </div>
-
-        {/* Google Sheets Live Status Pill */}
-        {database.sheetsConfig?.isConfigured && (
-          <div
-            onClick={syncNowToSheets}
-            className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#131722] border border-emerald-500/30 hover:border-emerald-500/60 cursor-pointer transition-colors text-xs select-none"
-            title="Google Sheets Connected - Klik untuk menyinkronkan data mutasi & rekening sekarang"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-xs font-medium text-emerald-300 hidden sm:inline">
-              {sheetsSyncState === 'syncing' ? 'Syncing Sheets...' : 'Sheets Synced'}
-            </span>
-            {sheetsSyncState === 'syncing' ? (
-              <RefreshCw className="w-2.5 h-2.5 text-amber-400 animate-spin" />
-            ) : (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            )}
-          </div>
-        )}
-
-        {/* Cloud Sync Status Pill (Laptop & Mobile) */}
-        <div
-          onClick={syncNowToDrive}
-          className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#131722] border border-[#1E2433] hover:border-emerald-500/30 cursor-pointer transition-colors text-xs select-none"
-          title="Click to sync instantly across your Laptop and Phone"
-        >
-          {syncState === 'synced' && (
-            <>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-medium text-emerald-400 hidden sm:inline">Cloud Synced</span>
-            </>
-          )}
-          {syncState === 'syncing' && (
-            <>
-              <RefreshCw className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-              <span className="text-xs font-medium text-amber-400 hidden sm:inline">Syncing...</span>
-            </>
-          )}
-          {syncState === 'error' && (
-            <>
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-              <span className="text-xs font-medium text-red-400 hidden sm:inline">Sync Error</span>
-            </>
-          )}
-          {(syncState === 'local_only' || syncState === 'disconnected') && (
-            <>
-              <Cloud className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-xs font-medium text-emerald-400 hidden sm:inline">Cloud Ready</span>
-            </>
-          )}
         </div>
 
         {/* Refresh Live Prices Button */}
