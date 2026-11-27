@@ -25,6 +25,7 @@ export interface AppSettings {
   syncIntervalMinutes: number;
   userName: string;
   userRole: string;
+  userAvatar?: string; // Base64 compressed image data URI or URL
   finnhubApiKey?: string;
   autoRefreshPricesIntervalMinutes?: number; // 0 = manual only, 1 = 1m, 5 = 5m
   lastPriceRefreshTimestamp?: string;

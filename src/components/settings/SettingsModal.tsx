@@ -28,6 +28,8 @@ import {
   FileSpreadsheet,
   Check,
   Send,
+  Camera,
+  AlertTriangle,
 } from 'lucide-react';
 import { GoogleDriveGuideModal } from './GoogleDriveGuideModal';
 import { GoogleSheetsGuideModal } from './GoogleSheetsGuideModal';
@@ -88,6 +90,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [masterPinInput, setMasterPinInput] = useState<string>(
     database.settings.security?.masterPin || '8888'
   );
+  const [confirmPinInput, setConfirmPinInput] = useState<string>(
+    database.settings.security?.masterPin || '8888'
+  );
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [userAvatarInput, setUserAvatarInput] = useState<string>(
+    database.settings.userAvatar || ''
+  );
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isProcessingAvatar, setIsProcessingAvatar] = useState<boolean>(false);
   const [authorizedEmailInput, setAuthorizedEmailInput] = useState<string>(
     database.settings.security?.authorizedEmail || ''
   );
@@ -113,6 +124,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setAutoRefreshIntervalInput(database.settings.autoRefreshPricesIntervalMinutes || 0);
       setIsSecurityEnabledInput(database.settings.security?.isSecurityEnabled ?? true);
       setMasterPinInput(database.settings.security?.masterPin || '8888');
+      setConfirmPinInput(database.settings.security?.masterPin || '8888');
+      setPinError(null);
+      setUserAvatarInput(database.settings.userAvatar || '');
+      setAvatarError(null);
       setAuthorizedEmailInput(database.settings.security?.authorizedEmail || '');
       setAutoLockMinutesInput(database.settings.security?.autoLockMinutes ?? 15);
       setSecuritySuccess(null);
@@ -181,7 +196,80 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     });
   };
 
-  const handleSaveGeneral = (e: React.FormEvent) => {
+  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Harap pilih file gambar (JPG, PNG, atau WebP)');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarError('Ukuran file maksimal 10MB');
+      return;
+    }
+
+    setIsProcessingAvatar(true);
+    setAvatarError(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxDim = 256;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            throw new Error('Canvas context not available');
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setUserAvatarInput(compressedDataUrl);
+        } catch (err: any) {
+          setAvatarError('Gagal memproses gambar: ' + (err?.message || 'Error'));
+        } finally {
+          setIsProcessingAvatar(false);
+        }
+      };
+      img.onerror = () => {
+        setAvatarError('File gambar rusak atau tidak dapat dibaca');
+        setIsProcessingAvatar(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => {
+      setAvatarError('Gagal membaca file gambar');
+      setIsProcessingAvatar(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setUserAvatarInput('');
+    setAvatarError(null);
+  };
+
+  const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
     const rate = parseFloat(usdRateInput);
     if (!isNaN(rate) && rate > 0) {
@@ -189,9 +277,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         usdToIdrRate: rate,
         userName: userNameInput.trim(),
         userRole: userRoleInput.trim(),
+        userAvatar: userAvatarInput || undefined,
         finnhubApiKey: finnhubApiKeyInput.trim() || undefined,
         autoRefreshPricesIntervalMinutes: autoRefreshIntervalInput,
       });
+
+      // Push updated preferences and photo to Google Sheets backup
+      if (database.sheetsConfig?.isConfigured && database.sheetsConfig.webhookUrl) {
+        try {
+          await syncNowToSheets();
+        } catch (err) {
+          console.warn('Sheets sync on general save:', err);
+        }
+      }
     }
   };
 
@@ -208,22 +306,51 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }
   };
 
-  const handleSaveSecurity = (e: React.FormEvent) => {
+  const handleSaveSecurity = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSecurityEnabledInput && masterPinInput.trim().length < 4) {
-      alert('Master Passcode must be at least 4 characters');
-      return;
+    setPinError(null);
+
+    const pinToSave = masterPinInput.trim();
+
+    if (isSecurityEnabledInput) {
+      if (pinToSave.length < 4) {
+        setPinError('Passcode minimal harus 4 karakter / angka');
+        return;
+      }
+      if (pinToSave !== confirmPinInput.trim()) {
+        setPinError('Konfirmasi Passcode tidak cocok! Harap periksa kembali.');
+        return;
+      }
     }
+
     updateSettings({
       security: {
         isSecurityEnabled: isSecurityEnabledInput,
-        masterPin: masterPinInput.trim(),
+        masterPin: pinToSave || '8888',
         authorizedEmail: authorizedEmailInput.trim(),
         autoLockMinutes: autoLockMinutesInput,
       },
     });
-    setSecuritySuccess('Security configuration saved successfully!');
-    setTimeout(() => setSecuritySuccess(null), 3000);
+
+    // Reset failed lock attempts and suspension since password is changed
+    localStorage.removeItem('exec_lock_failed_attempts');
+    localStorage.removeItem('exec_lock_suspended_until');
+
+    setSecuritySuccess('Menyimpan passcode & menyinkronkan ke Google Sheets...');
+
+    // Automatically push new passcode and database state to Google Sheets
+    if (database.sheetsConfig?.isConfigured && database.sheetsConfig.webhookUrl) {
+      try {
+        await syncNowToSheets();
+        setSecuritySuccess('Master Passcode & Pengaturan Keamanan berhasil disimpan dan dicadangkan ke Google Sheets!');
+      } catch {
+        setSecuritySuccess('Master Passcode berhasil diperbarui secara lokal!');
+      }
+    } else {
+      setSecuritySuccess('Master Passcode berhasil diperbarui!');
+    }
+
+    setTimeout(() => setSecuritySuccess(null), 4000);
   };
 
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -712,6 +839,75 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
             </div>
 
+            {/* Executive Identity & Photo Upload */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-[#F3F4F6] flex items-center space-x-1.5">
+                  <User className="w-4 h-4 text-emerald-400" />
+                  <span>Foto Profil &amp; Identitas Eksekutif</span>
+                </label>
+                <span className="text-[10px] text-emerald-400 font-medium">Tampil di Layar Kunci &amp; Sidebar</span>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="relative flex-shrink-0">
+                  {userAvatarInput ? (
+                    <img
+                      src={userAvatarInput}
+                      alt="Profile preview"
+                      className="w-16 h-16 rounded-2xl object-cover ring-2 ring-emerald-500/40 shadow-lg shadow-black/40"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#10B981] via-[#3B82F6] to-[#8B5CF6] flex items-center justify-center text-white font-black text-xl ring-2 ring-white/10 shadow-lg">
+                      {userNameInput
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .substring(0, 2)
+                        .toUpperCase() || 'ED'}
+                    </div>
+                  )}
+                  {isProcessingAvatar && (
+                    <div className="absolute inset-0 bg-black/70 rounded-2xl flex items-center justify-center">
+                      <RefreshCw className="w-5 h-5 text-emerald-400 animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold cursor-pointer transition-colors shadow-sm">
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>{userAvatarInput ? 'Ganti Foto' : 'Upload Foto Profil'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarFileSelect}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {userAvatarInput && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-medium transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Hapus Foto</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#9CA3AF]">
+                    Foto otomatis dikompresi agar hemat memori dan tersimpan sinkron di Google Sheets.
+                  </p>
+                  {avatarError && (
+                    <p className="text-[11px] text-rose-400 font-medium">{avatarError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-[#9CA3AF] mb-1">
@@ -788,34 +984,80 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </label>
             </div>
 
-            {/* Master Passcode Input */}
-            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] space-y-2">
+            {/* Master Passcode Management */}
+            <div className="p-4 rounded-xl bg-[#131722] border border-[#1E2433] space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-[#F3F4F6] flex items-center space-x-1.5">
                   <KeyRound className="w-4 h-4 text-[#F59E0B]" />
-                  <span>Master Passcode / PIN</span>
+                  <span>Ganti Master Passcode / PIN Akun</span>
                 </label>
-                <span className="text-[10px] text-[#64748B]">Min. 4 characters</span>
+                <span className="text-[10px] text-[#64748B]">Min. 4 karakter</span>
               </div>
-              <div className="relative">
-                <input
-                  type={showPinInput ? 'text' : 'password'}
-                  value={masterPinInput}
-                  onChange={(e) => setMasterPinInput(e.target.value)}
-                  placeholder="Set your master passcode..."
-                  className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-violet-500/60 rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
-                  required={isSecurityEnabledInput}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPinInput(!showPinInput)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1"
-                >
-                  {showPinInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+                    Passcode Baru
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPinInput ? 'text' : 'password'}
+                      value={masterPinInput}
+                      onChange={(e) => {
+                        setMasterPinInput(e.target.value);
+                        setPinError(null);
+                      }}
+                      placeholder="Masukkan passcode baru..."
+                      className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-violet-500/60 rounded-xl px-3.5 py-2.5 text-xs font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
+                      required={isSecurityEnabledInput}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPinInput(!showPinInput)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1"
+                    >
+                      {showPinInput ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
+                    Konfirmasi Passcode Baru
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPinInput ? 'text' : 'password'}
+                      value={confirmPinInput}
+                      onChange={(e) => {
+                        setConfirmPinInput(e.target.value);
+                        setPinError(null);
+                      }}
+                      placeholder="Ketik ulang passcode..."
+                      className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-violet-500/60 rounded-xl px-3.5 py-2.5 text-xs font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
+                      required={isSecurityEnabledInput}
+                    />
+                  </div>
+                </div>
               </div>
+
+              {pinError && (
+                <div className="flex items-center space-x-1.5 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{pinError}</span>
+                </div>
+              )}
+
+              {/* Anti-Brute-Force Policy Note */}
+              <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] flex items-start space-x-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong className="font-semibold text-amber-200">Perlindungan Anti Brute-Force:</strong> Jika salah memasukkan passcode 3 kali berturut-turut di layar kunci terminal, akses akan ditangguhkan (suspend) otomatis selama 5 menit.
+                </div>
+              </div>
+
               <p className="text-[10px] text-[#64748B]">
-                Default passcode is <span className="font-mono text-amber-400">8888</span>. You can change it to any PIN or password.
+                Passcode default awal adalah <span className="font-mono text-amber-400">8888</span>. Setiap perubahan otomatis tersimpan dan dicadangkan ke Google Sheets.
               </p>
             </div>
 

@@ -123,14 +123,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* User Card */}
         <div className="px-6 py-4 mx-4 my-3 rounded-xl bg-[#131722] border border-[#1E2433]/80 flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#10B981] to-[#3B82F6] flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#1E2433]">
-            {database.settings.userName
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .substring(0, 2)
-              .toUpperCase()}
-          </div>
+          {database.settings.userAvatar ? (
+            <img
+              src={database.settings.userAvatar}
+              alt={database.settings.userName}
+              className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1E2433] flex-shrink-0"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#10B981] to-[#3B82F6] flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#1E2433] flex-shrink-0">
+              {database.settings.userName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <h4 className="text-xs font-semibold text-[#F3F4F6] truncate">
               {database.settings.userName}
