@@ -50,6 +50,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     updateDriveConfig,
     updateSheetsConfig,
     syncNowToSheets,
+    pullFromSheets,
     connectGoogleDrive,
     disconnectGoogleDrive,
     syncNowToDrive,
@@ -69,6 +70,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   );
   const [isTestingSheets, setIsTestingSheets] = useState<boolean>(false);
   const [isSyncingSheets, setIsSyncingSheets] = useState<boolean>(false);
+  const [isPullingSheets, setIsPullingSheets] = useState<boolean>(false);
   const [sheetsMessage, setSheetsMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [isSheetsGuideOpen, setIsSheetsGuideOpen] = useState<boolean>(false);
 
@@ -187,6 +189,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setSheetsMessage({ text: err?.message || 'Sinkronisasi gagal', isError: true });
     } finally {
       setIsSyncingSheets(false);
+    }
+  };
+
+  const handlePullSheetsNow = async () => {
+    setIsPullingSheets(true);
+    setSheetsMessage(null);
+    try {
+      const ok = await pullFromSheets(false);
+      if (ok) {
+        setSheetsMessage({
+          text: `Berhasil memuat seluruh data dari Google Sheets ke perangkat ini!`,
+          isError: false,
+        });
+      }
+    } catch (err: any) {
+      setSheetsMessage({ text: err?.message || 'Gagal memuat data dari Google Sheets', isError: true });
+    } finally {
+      setIsPullingSheets(false);
     }
   };
 
@@ -463,7 +483,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 </div>
               </div>
 
-              <div className="flex space-x-2 self-end sm:self-auto flex-shrink-0">
+              <div className="flex flex-wrap gap-2 self-end sm:self-auto flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  disabled={isPullingSheets || !database.sheetsConfig?.webhookUrl}
+                  onClick={handlePullSheetsNow}
+                  icon={<Download className={`w-3.5 h-3.5 text-emerald-400 ${isPullingSheets ? 'animate-bounce' : ''}`} />}
+                  title="Tarik data mutasi & rekening dari Google Sheets ke perangkat ini"
+                >
+                  {isPullingSheets ? 'Menarik Data...' : 'Tarik dari Sheets (Pull)'}
+                </Button>
+
                 <Button
                   variant="emerald"
                   size="sm"
@@ -471,9 +503,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   disabled={isSyncingSheets || !database.sheetsConfig?.webhookUrl}
                   onClick={handleSyncSheetsNow}
                   icon={<RefreshCw className={`w-3.5 h-3.5 ${isSyncingSheets ? 'animate-spin' : ''}`} />}
+                  title="Kirim data mutasi & rekening saat ini ke Google Sheets"
                 >
-                  {isSyncingSheets ? 'Menyinkronkan...' : 'Sync ke Sheets Sekarang'}
+                  {isSyncingSheets ? 'Menyinkronkan...' : 'Sync ke Sheets (Push)'}
                 </Button>
+              </div>
+            </div>
+
+            {/* Mobile & Laptop Cross-Device Sync Guide Card */}
+            <div className="p-3.5 rounded-xl bg-[#131722] border border-emerald-500/20 text-xs space-y-2">
+              <div className="flex items-center space-x-2 font-bold text-emerald-300">
+                <span>📱</span>
+                <span>Cara Sinkronisasi Data Antara Laptop &amp; HP via Google Sheets:</span>
+              </div>
+              <div className="text-[#9CA3AF] space-y-1 text-[11px] leading-relaxed">
+                <p>
+                  1. <strong className="text-[#F3F4F6]">Di Laptop:</strong> Klik tombol <span className="text-emerald-400 font-semibold">"Sync ke Sheets (Push)"</span> untuk memastikan seluruh transaksi &amp; rekening terbaru sudah terkirim ke Google Spreadsheet.
+                </p>
+                <p>
+                  2. <strong className="text-[#F3F4F6]">Di HP:</strong> Buka tautan Vercel Anda di browser HP, buka Settings &gt; Google Sheets, lalu klik <span className="text-emerald-400 font-semibold">"Tarik dari Sheets (Pull)"</span>. Semua data akan langsung termuat identik!
+                </p>
+                <p className="text-[#64748B]">
+                  *Catatan: Pastikan kode di Google Apps Script Anda sudah diperbarui dengan versi terbaru agar mendukung pembacaan data ke HP.
+                </p>
               </div>
             </div>
 

@@ -8,6 +8,7 @@ import { googleDriveService } from '../services/googleDriveService';
 import { cloudSyncService } from '../services/cloudSyncService';
 import { googleSheetsService } from '../services/googleSheetsService';
 import { marketPriceService } from '../services/marketPriceService';
+import { INITIAL_DATABASE } from '../data/initialData';
 import { useToast } from './ToastContext';
 import confetti from 'canvas-confetti';
 
@@ -60,6 +61,7 @@ interface DashboardContextType {
   lastSheetsSyncedAt: string | null;
   updateSheetsConfig: (config: Partial<GoogleSheetsConfig>) => void;
   syncNowToSheets: () => Promise<boolean>;
+  pullFromSheets: (silent?: boolean) => Promise<boolean>;
 
   // Backup & Reset
   resetToDemoData: () => void;
@@ -153,6 +155,35 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const initializeSync = async () => {
       setSyncState('syncing');
       try {
+        // 1. Check Google Sheets (Primary multi-device sync for HP & Laptop)
+        const sheetsUrl = database.sheetsConfig?.webhookUrl || INITIAL_DATABASE.sheetsConfig?.webhookUrl;
+        if (sheetsUrl && isMounted) {
+          try {
+            const sheetsDb = await googleSheetsService.pullFromSheets(sheetsUrl);
+            if (sheetsDb && isMounted && (sheetsDb.accounts?.length > 0 || sheetsDb.transactions?.length > 0)) {
+              const localUpdated = new Date(database.updatedAt || 0).getTime();
+              const sheetsUpdated = new Date(sheetsDb.updatedAt || 0).getTime();
+              const isLocalEmpty = (!database.transactions || database.transactions.length === 0) &&
+                                   (!database.accounts || database.accounts.length === 0);
+
+              if (isLocalEmpty || sheetsUpdated >= localUpdated) {
+                setDatabase(sheetsDb);
+                storageService.saveDatabase(sheetsDb);
+                if (sheetsDb.settings?.security?.masterPin) {
+                  localStorage.setItem('executive_master_pin', sheetsDb.settings.security.masterPin);
+                }
+                setSheetsSyncState('synced');
+                setLastSheetsSyncedAt(new Date().toISOString());
+                setSyncState('synced');
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('Initial Google Sheets pull error:', e);
+          }
+        }
+
+        // 2. Check Cloud GitHub backend sync
         const cloudDb = await cloudSyncService.pullFromCloud();
         if (cloudDb && cloudDb.accounts && isMounted) {
           const localUpdated = new Date(database.updatedAt || 0).getTime();
@@ -863,6 +894,72 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [database, updateDbAndPersist, success, error]);
 
+  const pullFromSheets = useCallback(
+    async (silent: boolean = false): Promise<boolean> => {
+      const webhookUrl = database.sheetsConfig?.webhookUrl || INITIAL_DATABASE.sheetsConfig?.webhookUrl;
+      if (!webhookUrl || !webhookUrl.trim().startsWith('https://script.google.com/macros/s/')) {
+        if (!silent) {
+          error(
+            'Google Sheets Belum Terhubung',
+            'Masukkan URL Webhook Google Apps Script di Settings terlebih dahulu.'
+          );
+        }
+        return false;
+      }
+
+      setSheetsSyncState('syncing');
+      try {
+        const sheetsDb = await googleSheetsService.pullFromSheets(webhookUrl);
+        if (sheetsDb && (sheetsDb.accounts?.length > 0 || sheetsDb.transactions?.length > 0 || sheetsDb.settings)) {
+          setDatabase((prev) => {
+            const merged: MasterDatabaseSchema = {
+              ...sheetsDb,
+              sheetsConfig: {
+                ...(sheetsDb.sheetsConfig || prev.sheetsConfig || {}),
+                webhookUrl,
+                isConfigured: true,
+                autoSync: true,
+                lastSyncedAt: new Date().toISOString(),
+              },
+              updatedAt: new Date().toISOString(),
+            };
+            storageService.saveDatabase(merged);
+            if (merged.settings?.security?.masterPin) {
+              localStorage.setItem('executive_master_pin', merged.settings.security.masterPin);
+            }
+            return merged;
+          });
+          setSheetsSyncState('synced');
+          const now = new Date().toISOString();
+          setLastSheetsSyncedAt(now);
+          if (!silent) {
+            success(
+              'Data Dimuat dari Google Sheets',
+              `Berhasil memuat ${sheetsDb.transactions?.length || 0} mutasi & ${sheetsDb.accounts?.length || 0} rekening!`
+            );
+          }
+          return true;
+        } else {
+          setSheetsSyncState('idle');
+          if (!silent) {
+            info(
+              'Belum Ada Cadangan di Sheets',
+              'Pastikan script di Google Apps Script sudah diperbarui ke versi terbaru dan Anda sudah mengklik "Sync ke Sheets" dari laptop.'
+            );
+          }
+          return false;
+        }
+      } catch (err: any) {
+        setSheetsSyncState('error');
+        if (!silent) {
+          error('Gagal Menarik Data', err?.message || 'Tidak dapat terhubung ke Google Sheets.');
+        }
+        return false;
+      }
+    },
+    [database.sheetsConfig?.webhookUrl, success, error, info]
+  );
+
   // BACKUP & RESET
   const resetToDemoData = useCallback(() => {
     const demo = storageService.resetToDemo();
@@ -931,6 +1028,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         lastSheetsSyncedAt,
         updateSheetsConfig,
         syncNowToSheets,
+        pullFromSheets,
         resetToDemoData,
         clearAllData,
         exportDatabase,

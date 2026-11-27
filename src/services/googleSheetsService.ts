@@ -20,11 +20,44 @@ export const APPS_SCRIPT_SOURCE_CODE = `/**
  */
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "success",
-    message: "Executive Personal Tracker Google Sheets Webhook is active and connected!",
-    timestamp: new Date().toISOString()
-  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var action = (e && e.parameter && e.parameter.action) || 'read_db';
+
+    if (action === 'ping') {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Executive Personal Tracker Google Sheets Webhook is active and connected!",
+        timestamp: new Date().toISOString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Default: read latest database from Master Backup JSON
+    var backupSheet = ss.getSheetByName("Master Backup JSON");
+    if (backupSheet) {
+      var rawVal = backupSheet.getRange(2, 1).getValue();
+      if (rawVal && typeof rawVal === 'string' && rawVal.trim().length > 0) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          data: JSON.parse(rawVal),
+          timestamp: new Date().toISOString()
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "Webhook aktif, namun belum ada data backup di sheet.",
+      data: null,
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function doPost(e) {
@@ -557,6 +590,40 @@ class GoogleSheetsService {
       console.warn('Quick append to Google Sheets error:', e);
       return false;
     }
+  }
+
+  /**
+   * Pull complete master database from Google Sheets (Master Backup JSON sheet)
+   */
+  public async pullFromSheets(webhookUrl: string): Promise<MasterDatabaseSchema | null> {
+    const cleanUrl = webhookUrl?.trim();
+    if (!cleanUrl || !cleanUrl.startsWith('https://script.google.com/macros/s/')) {
+      return null;
+    }
+
+    try {
+      const url = cleanUrl.includes('?')
+        ? `${cleanUrl}&action=read_db&_t=${Date.now()}`
+        : `${cleanUrl}?action=read_db&_t=${Date.now()}`;
+
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status === 'success' && json.data) {
+          const dbData = json.data as MasterDatabaseSchema;
+          if (dbData.accounts || dbData.transactions) {
+            return dbData;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Pull from Google Sheets warning:', err);
+    }
+    return null;
   }
 }
 
