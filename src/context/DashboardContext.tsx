@@ -90,7 +90,10 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateDbAndPersist = useCallback(
     (updater: (prev: MasterDatabaseSchema) => MasterDatabaseSchema, triggerSync: boolean = true) => {
       setDatabase((prev) => {
-        const next = updater(prev);
+        const next = {
+          ...updater(prev),
+          updatedAt: new Date().toISOString(),
+        };
         storageService.saveDatabase(next);
 
         // Auto-sync to Cloud (Multi-Device Laptop & HP) & Google Sheets

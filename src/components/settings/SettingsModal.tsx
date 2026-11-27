@@ -87,12 +87,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [isSecurityEnabledInput, setIsSecurityEnabledInput] = useState<boolean>(
     database.settings.security?.isSecurityEnabled ?? true
   );
-  const [masterPinInput, setMasterPinInput] = useState<string>(
-    database.settings.security?.masterPin || '8888'
-  );
-  const [confirmPinInput, setConfirmPinInput] = useState<string>(
-    database.settings.security?.masterPin || '8888'
-  );
+  const [masterPinInput, setMasterPinInput] = useState<string>(() => {
+    return (typeof window !== 'undefined' && localStorage.getItem('executive_master_pin')) ||
+      database.settings.security?.masterPin ||
+      '8888';
+  });
   const [pinError, setPinError] = useState<string | null>(null);
   const [userAvatarInput, setUserAvatarInput] = useState<string>(
     database.settings.userAvatar || ''
@@ -123,8 +122,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setFinnhubApiKeyInput(database.settings.finnhubApiKey || '');
       setAutoRefreshIntervalInput(database.settings.autoRefreshPricesIntervalMinutes || 0);
       setIsSecurityEnabledInput(database.settings.security?.isSecurityEnabled ?? true);
-      setMasterPinInput(database.settings.security?.masterPin || '8888');
-      setConfirmPinInput(database.settings.security?.masterPin || '8888');
+      const activePin = (typeof window !== 'undefined' && localStorage.getItem('executive_master_pin')) ||
+        database.settings.security?.masterPin ||
+        '8888';
+      setMasterPinInput(activePin);
       setPinError(null);
       setUserAvatarInput(database.settings.userAvatar || '');
       setAvatarError(null);
@@ -306,10 +307,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }
   };
 
-  const handleSaveSecurity = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDirectSavePasscode = async () => {
     setPinError(null);
-
     const pinToSave = masterPinInput.trim();
 
     if (isSecurityEnabledInput) {
@@ -317,11 +316,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setPinError('Passcode minimal harus 4 karakter / angka');
         return;
       }
-      if (pinToSave !== confirmPinInput.trim()) {
-        setPinError('Konfirmasi Passcode tidak cocok! Harap periksa kembali.');
-        return;
-      }
     }
+
+    // Persist immediately in localStorage so lock screen recognizes it instantly
+    localStorage.setItem('executive_master_pin', pinToSave);
 
     updateSettings({
       security: {
@@ -332,25 +330,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       },
     });
 
-    // Reset failed lock attempts and suspension since password is changed
+    // Reset failed lock attempts and suspension
     localStorage.removeItem('exec_lock_failed_attempts');
     localStorage.removeItem('exec_lock_suspended_until');
 
-    setSecuritySuccess('Menyimpan passcode & menyinkronkan ke Google Sheets...');
+    setSecuritySuccess(`Passcode "${pinToSave}" berhasil disimpan! Menyinkronkan ke Google Sheets...`);
 
-    // Automatically push new passcode and database state to Google Sheets
     if (database.sheetsConfig?.isConfigured && database.sheetsConfig.webhookUrl) {
       try {
         await syncNowToSheets();
-        setSecuritySuccess('Master Passcode & Pengaturan Keamanan berhasil disimpan dan dicadangkan ke Google Sheets!');
+        setSecuritySuccess(`Passcode "${pinToSave}" aktif & dicadangkan ke Google Sheets!`);
       } catch {
-        setSecuritySuccess('Master Passcode berhasil diperbarui secara lokal!');
+        setSecuritySuccess(`Passcode "${pinToSave}" aktif secara lokal!`);
       }
     } else {
-      setSecuritySuccess('Master Passcode berhasil diperbarui!');
+      setSecuritySuccess(`Passcode "${pinToSave}" aktif!`);
     }
 
     setTimeout(() => setSecuritySuccess(null), 4000);
+  };
+
+  const handleSaveSecurity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleDirectSavePasscode();
   };
 
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -991,13 +993,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <KeyRound className="w-4 h-4 text-[#F59E0B]" />
                   <span>Ganti Master Passcode / PIN Akun</span>
                 </label>
-                <span className="text-[10px] text-[#64748B]">Min. 4 karakter</span>
+                <span className="text-[10px] text-amber-400 font-mono font-semibold">
+                  Aktif: {typeof window !== 'undefined' ? (localStorage.getItem('executive_master_pin') || database.settings.security?.masterPin || '8888') : '8888'}
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                <div className="flex-1">
                   <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
-                    Passcode Baru
+                    Passcode Baru (Min. 4 Karakter / Angka)
                   </label>
                   <div className="relative">
                     <input
@@ -1007,38 +1011,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         setMasterPinInput(e.target.value);
                         setPinError(null);
                       }}
-                      placeholder="Masukkan passcode baru..."
-                      className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-violet-500/60 rounded-xl px-3.5 py-2.5 text-xs font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
+                      placeholder="Ketik passcode baru (misal: 2525)..."
+                      className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-amber-500/60 rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
                       required={isSecurityEnabledInput}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPinInput(!showPinInput)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1"
+                      title={showPinInput ? 'Sembunyikan' : 'Lihat'}
                     >
-                      {showPinInput ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showPinInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-medium text-[#9CA3AF] mb-1">
-                    Konfirmasi Passcode Baru
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPinInput ? 'text' : 'password'}
-                      value={confirmPinInput}
-                      onChange={(e) => {
-                        setConfirmPinInput(e.target.value);
-                        setPinError(null);
-                      }}
-                      placeholder="Ketik ulang passcode..."
-                      className="w-full bg-[#171C2A] border border-[#1E2433] focus:border-violet-500/60 rounded-xl px-3.5 py-2.5 text-xs font-mono tracking-wider text-[#F3F4F6] focus:outline-none"
-                      required={isSecurityEnabledInput}
-                    />
-                  </div>
-                </div>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleDirectSavePasscode}
+                  className="py-2.5 px-4 font-bold flex-shrink-0 shadow-sm"
+                >
+                  <KeyRound className="w-3.5 h-3.5 mr-1.5" />
+                  Simpan Passcode
+                </Button>
               </div>
 
               {pinError && (
@@ -1057,7 +1054,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
               <p className="text-[10px] text-[#64748B]">
-                Passcode default awal adalah <span className="font-mono text-amber-400">8888</span>. Setiap perubahan otomatis tersimpan dan dicadangkan ke Google Sheets.
+                Setiap kali passcode disimpan, terminal kunci otomatis menggunakan passcode baru dan langsung dicadangkan ke Google Sheets.
               </p>
             </div>
 

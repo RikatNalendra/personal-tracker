@@ -32,6 +32,9 @@ export const SecurityLockScreen: React.FC<SecurityLockScreenProps> = ({ onUnlock
     autoLockMinutes: 15,
   };
 
+  const localMasterPin = typeof window !== 'undefined' ? localStorage.getItem('executive_master_pin') : null;
+  const expectedPin = localMasterPin || security.masterPin || '8888';
+
   const [pin, setPin] = useState<string>('');
   const [showPin, setShowPin] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -94,8 +97,6 @@ export const SecurityLockScreen: React.FC<SecurityLockScreenProps> = ({ onUnlock
 
     if (isSuspended) return;
 
-    const expectedPin = security.masterPin || '8888';
-
     if (pin.trim() === expectedPin) {
       // Clear suspension and failed attempts
       localStorage.removeItem(STORAGE_KEY_FAILED_ATTEMPTS);
@@ -137,8 +138,7 @@ export const SecurityLockScreen: React.FC<SecurityLockScreenProps> = ({ onUnlock
 
   const handleQuickFillDefault = () => {
     if (isSuspended) return;
-    const expected = security.masterPin || '8888';
-    setPin(expected);
+    setPin(expectedPin);
     setErrorMessage(null);
   };
 
@@ -244,7 +244,7 @@ export const SecurityLockScreen: React.FC<SecurityLockScreenProps> = ({ onUnlock
               </label>
 
               {/* Default Hint for immediate onboarding */}
-              {security.masterPin === '8888' && !isSuspended && (
+              {expectedPin === '8888' && !isSuspended && (
                 <button
                   type="button"
                   onClick={handleQuickFillDefault}

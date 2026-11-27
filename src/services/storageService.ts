@@ -52,6 +52,9 @@ export const storageService = {
         }
       }
 
+      const localMasterPin = localStorage.getItem('executive_master_pin');
+      const resolvedMasterPin = localMasterPin || parsed.settings?.security?.masterPin || INITIAL_DATABASE.settings.security?.masterPin || '8888';
+
       return {
         ...INITIAL_DATABASE,
         ...parsed,
@@ -62,7 +65,7 @@ export const storageService = {
           ...(parsed.settings || {}),
           security: {
             isSecurityEnabled: parsed.settings?.security?.isSecurityEnabled ?? INITIAL_DATABASE.settings.security?.isSecurityEnabled ?? true,
-            masterPin: parsed.settings?.security?.masterPin || INITIAL_DATABASE.settings.security?.masterPin || '8888',
+            masterPin: resolvedMasterPin,
             authorizedEmail: parsed.settings?.security?.authorizedEmail ?? INITIAL_DATABASE.settings.security?.authorizedEmail ?? '',
             autoLockMinutes: parsed.settings?.security?.autoLockMinutes ?? INITIAL_DATABASE.settings.security?.autoLockMinutes ?? 15,
           },
@@ -89,6 +92,9 @@ export const storageService = {
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+      if (data.settings?.security?.masterPin) {
+        localStorage.setItem('executive_master_pin', data.settings.security.masterPin);
+      }
     } catch (e) {
       console.error('Error saving database to localStorage:', e);
     }
